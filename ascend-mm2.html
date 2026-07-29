@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ascend MM2 — Cheapest items out of anywhere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#faf6ec;
+    --cloud:#ffffff;
+    --cloud2:#fbf8f0;
+    --gold:#c9a24a;
+    --gold-deep:#8c6d1f;
+    --gold-soft:#e8d9ad;
+    --sky:#7fb2d9;
+    --sky-deep:#4f85ad;
+    --ink:#2e2a1f;
+    --ink-dim:#8a8267;
+    --halo:#fff6d9;
+    --border:#ecdfb8;
+    --border-lt:#ddc98a;
+    --danger:#b3432f;
+    --success:#4f8f5f;
+  }
+  [data-theme="dark"]{
+    --ivory:#161320;
+    --cloud:#1f1b2e;
+    --cloud2:#241f35;
+    --gold:#d9b45f;
+    --gold-deep:#f0cc7a;
+    --gold-soft:#4a3d1f;
+    --sky:#7fb2d9;
+    --sky-deep:#9dd0f2;
+    --ink:#f1ecdf;
+    --ink-dim:#a89fc4;
+    --halo:#2c2340;
+    --border:#3a3252;
+    --border-lt:#4d4368;
+    --danger:#e2685a;
+    --success:#6fcf8a;
+  }
+  [data-theme="dark"] .splash{
+    background:radial-gradient(ellipse 1200px 700px at 50% 40%, #241f38, var(--ivory) 65%);
+  }
+  [data-theme="dark"] .splash-cloud{
+    background:radial-gradient(ellipse at center, rgba(217,180,95,0.25) 0%, rgba(255,255,255,0) 70%);
+  }
+  [data-theme="dark"] .item-media{
+    background:linear-gradient(160deg, var(--halo), var(--cloud2));
+  }
+  .theme-toggle{
+    background:var(--cloud2);border:1px solid var(--border-lt);color:var(--ink);
+    width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .theme-toggle:hover{border-color:var(--gold);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    /* flat fallback only — the moving wash + orbs live in .site-bg so they
+       aren't painted over by this element's own background */
+    background:var(--ivory);
+  }
+  h1,h2,h3,.display{
+    font-family:'Cinzel', serif;
+    letter-spacing:0.02em;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .app{max-width:1120px;margin:0 auto;padding:0 20px 70px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--border);
+    flex-wrap:wrap;gap:12px;
+    background:linear-gradient(180deg, rgba(255,246,217,0.6), transparent);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{
+    width:38px;height:38px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--gold) 70%);
+    box-shadow:0 0 14px rgba(201,162,74,0.55);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cinzel';font-weight:700;color:#5c4413;font-size:15px;
+  }
+  .brand .title{font-weight:600;font-size:20px;letter-spacing:0.03em;color:var(--gold-deep);}
+  .brand .subtitle{font-size:10px;color:var(--ink-dim);letter-spacing:0.18em;margin-top:-2px;text-transform:uppercase;}
+  .nav{display:flex;gap:2px;flex-wrap:wrap;}
+  .nav button{
+    background:transparent;border:1px solid transparent;color:var(--ink-dim);
+    font-family:'Cinzel';text-transform:uppercase;letter-spacing:0.04em;font-size:12px;
+    padding:8px 12px;cursor:pointer;border-radius:6px;
+  }
+  .nav button:hover{color:var(--ink);background:rgba(201,162,74,0.08);}
+  .nav button.active{color:var(--gold-deep);background:rgba(201,162,74,0.14);}
+  .nav .badge{background:var(--gold);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px;}
+  .user-chip{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-dim);}
+  .user-chip b{color:var(--ink);}
+  .owner-tag{color:#fff;background:linear-gradient(135deg,var(--gold),var(--gold-deep));padding:1px 8px;border-radius:8px;font-size:10px;letter-spacing:0.06em;margin-left:4px;}
+  .admin-tag{color:var(--sky-deep);border:1px solid var(--sky);padding:1px 8px;border-radius:8px;font-size:10px;letter-spacing:0.06em;margin-left:4px;}
+  .user-chip button{
+    background:none;border:1px solid var(--border-lt);color:var(--ink-dim);
+    font-family:'Inter';font-size:11.5px;padding:5px 10px;cursor:pointer;border-radius:6px;
+  }
+  .user-chip button:hover{border-color:var(--gold);color:var(--ink);}
+
+  /* ---------- Generic ---------- */
+  .section-title{font-size:24px;margin:26px 0 4px;color:var(--gold-deep);}
+  .section-sub{color:var(--ink-dim);font-size:13px;margin-bottom:20px;}
+  .btn{
+    font-family:'Cinzel';text-transform:uppercase;letter-spacing:0.04em;
+    background:linear-gradient(135deg, var(--gold), var(--gold-deep));color:#fff;border:none;padding:10px 20px;
+    cursor:pointer;border-radius:8px;font-size:12.5px;font-weight:600;
+    box-shadow:0 2px 8px rgba(140,109,31,0.25);
+  }
+  .btn:hover{filter:brightness(1.06);}
+  .btn.secondary{background:transparent;border:1px solid var(--border-lt);color:var(--ink);box-shadow:none;}
+  .btn.secondary:hover{border-color:var(--gold);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11px;color:var(--ink-dim);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%;background:var(--cloud);border:1px solid var(--border-lt);color:var(--ink);
+    padding:10px 12px;font-family:'Inter';font-size:13.5px;border-radius:8px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--gold);}
+  .error-note{
+    color:var(--danger);font-size:12px;margin-top:8px;padding:9px 12px;border-radius:8px;
+    border-left:3px solid var(--danger);background:rgba(179,67,47,0.07);
+  }
+  .info-note{
+    color:var(--gold-deep);font-size:12px;margin-top:8px;padding:9px 12px;border-radius:8px;
+    border-left:3px solid var(--gold);background:rgba(201,162,74,0.08);
+  }
+  .loading{color:var(--ink-dim);font-size:13px;padding:40px 0;text-align:center;}
+  .card{background:var(--cloud);border:1px solid var(--border);border-radius:14px;box-shadow:0 2px 14px rgba(140,109,31,0.06);}
+
+  /* ---------- Splash ---------- */
+  .splash{
+    position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    background:radial-gradient(ellipse 1200px 700px at 50% 40%, #fffdf3, var(--ivory) 65%);
+    overflow:hidden;cursor:pointer;
+  }
+  .splash-rays{
+    position:absolute;inset:-20%;
+    /* period (18deg) divides evenly into 360 so the loop point is seamless — no visible seam/jump */
+    background:repeating-conic-gradient(from 0deg, rgba(255,230,150,0.35) 0deg 4deg, transparent 4deg 18deg);
+    animation:rayspin 40s linear infinite;
+    opacity:0.6;
+  }
+  @keyframes rayspin{ to{ transform:rotate(360deg); } }
+  .splash-cloud{
+    position:absolute;bottom:-10%;width:60%;opacity:0.9;filter:blur(1px);
+    background:radial-gradient(ellipse at center, #ffffff 0%, rgba(255,255,255,0) 70%);
+    height:300px;border-radius:50%;
+  }
+  .splash-cloud.left{left:-15%;animation:driftleft 18s ease-in-out infinite;}
+  .splash-cloud.right{right:-15%;animation:driftright 22s ease-in-out infinite;}
+  @keyframes driftleft{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(40px);} }
+  @keyframes driftright{ 0%,100%{transform:translateX(0);} 50%{transform:translateX(-40px);} }
+  .splash-content{position:relative;z-index:2;text-align:center;}
+  .splash-title{
+    font-family:'Cinzel';font-weight:700;font-size:56px;letter-spacing:0.08em;
+    color:var(--gold-deep);
+    opacity:0;transform:translateY(24px) scale(0.96);
+    animation:riseIn 1.3s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+    text-shadow:0 0 30px rgba(201,162,74,0.35);
+  }
+  .splash-sub{
+    font-family:'Inter';font-size:14px;letter-spacing:0.24em;text-transform:uppercase;color:var(--ink-dim);margin-top:10px;
+    opacity:0;animation:fadeIn 1.2s ease 1s forwards;
+  }
+  .splash-hint{
+    font-family:'Inter';font-size:11px;color:var(--ink-dim);margin-top:34px;opacity:0;
+    animation:fadeIn 1s ease 2s forwards;
+  }
+  @keyframes riseIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes fadeIn{ to{ opacity:1; } }
+
+  /* ---------- Auth ---------- */
+  .auth-wrap{display:flex;justify-content:center;padding:60px 20px;}
+  .auth-card{width:100%;max-width:380px;background:var(--cloud);border:1px solid var(--border);border-radius:16px;padding:30px;position:relative;box-shadow:0 8px 30px rgba(140,109,31,0.1);}
+  .auth-card::before{
+    content:'✦ ASCEND MM2 ✦';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--ivory);
+    padding:0 10px;font-family:'Cinzel';font-size:10px;letter-spacing:0.15em;color:var(--gold-deep);white-space:nowrap;
+  }
+  .auth-tabs{display:flex;margin-bottom:22px;border-bottom:1px solid var(--border);}
+  .auth-tabs button{
+    flex:1;background:none;border:none;color:var(--ink-dim);padding:10px 0;
+    font-family:'Cinzel';text-transform:uppercase;letter-spacing:0.05em;font-size:13px;cursor:pointer;
+    border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  .auth-tabs button.active{color:var(--gold-deep);border-color:var(--gold);}
+
+  /* ---------- Catalog ---------- */
+  .catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:18px;}
+  .item-card{background:var(--cloud);border:1px solid var(--border);border-radius:14px;position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 2px 12px rgba(140,109,31,0.06);transition:transform 0.15s;}
+  .item-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(140,109,31,0.14);}
+  .item-media{
+    height:112px;display:flex;align-items:center;justify-content:center;font-size:48px;
+    background:linear-gradient(160deg, var(--halo), var(--cloud2));
+    border-bottom:1px solid var(--border);position:relative;
+  }
+  .item-media img{width:100%;height:100%;object-fit:cover;}
+  .stock-tape{position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-family:'Cinzel';font-size:9.5px;letter-spacing:0.05em;padding:3px 8px;border-radius:6px;font-weight:600;}
+  .stock-tape.low{background:var(--danger);}
+  .stock-tape.none{background:#b0a98f;}
+  .item-body{padding:13px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .item-name{font-family:'Cinzel';font-size:14.5px;line-height:1.25;color:var(--ink);}
+  .item-social{display:flex;flex-direction:column;gap:2px;font-size:10.5px;color:var(--sky-deep);min-height:14px;}
+  .item-social .cart-flag{color:var(--gold-deep);}
+  .item-price-row{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+  .item-price{font-family:'JetBrains Mono';color:var(--gold-deep);font-size:15px;font-weight:600;}
+  .qty-row{display:flex;align-items:center;gap:8px;}
+  .qty-row button{width:26px;height:26px;background:var(--cloud2);border:1px solid var(--border-lt);color:var(--ink);cursor:pointer;font-size:14px;border-radius:6px;}
+  .qty-row span{min-width:20px;text-align:center;font-size:13px;}
+  .add-btn{width:100%;margin-top:2px;}
+
+  /* ---------- Cart ---------- */
+  .cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cloud);border-top:2px solid var(--gold);padding:12px 20px;display:flex;align-items:center;justify-content:center;gap:20px;z-index:50;box-shadow:0 -4px 18px rgba(140,109,31,0.1);}
+  .cart-bar .info{font-size:13px;color:var(--ink-dim);}
+  .cart-bar .info b{color:var(--ink);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(46,42,31,0.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal{background:var(--cloud);border:1px solid var(--border);border-radius:16px;max-width:460px;width:100%;padding:26px;max-height:85vh;overflow-y:auto;}
+  .modal h3{margin-top:0;color:var(--gold-deep);}
+  .cart-line{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .cart-line button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:11px;}
+  .cart-total{display:flex;justify-content:space-between;font-family:'Cinzel';font-size:17px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-lt);color:var(--gold-deep);}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .order-code-box{
+    text-align:center;padding:20px;border:2px dashed var(--gold);border-radius:12px;background:var(--halo);margin:16px 0;
+  }
+  .order-code-box .code{font-family:'JetBrains Mono';font-size:24px;font-weight:600;letter-spacing:0.08em;color:var(--gold-deep);margin:6px 0;}
+
+  /* ---------- Orders / status pill ---------- */
+  .order-card{background:var(--cloud);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+  .order-left .case-no{font-family:'Cinzel';font-size:19px;color:var(--gold-deep);}
+  .order-left .meta{color:var(--ink-dim);font-size:11.5px;margin-top:2px;}
+  .order-items{margin-top:10px;font-size:12.5px;color:var(--ink-dim);}
+  .order-items div{padding:2px 0;}
+  .order-total{font-family:'Cinzel';color:var(--gold-deep);margin-top:8px;font-size:14px;}
+  .order-code-tag{font-family:'JetBrains Mono';font-size:11px;color:var(--sky-deep);margin-top:6px;}
+  .status-pill{font-family:'Cinzel';font-weight:600;letter-spacing:0.06em;font-size:12px;padding:8px 16px;border-radius:20px;white-space:nowrap;}
+  .status-pill.PENDING{color:var(--gold-deep);background:var(--halo);border:1px solid var(--gold-soft);}
+  .status-pill.PROCESSING{color:var(--sky-deep);background:#eaf4fb;border:1px solid var(--sky);}
+  .status-pill.FULFILLED{color:var(--success);background:#eaf6ec;border:1px solid #b9dcc0;}
+  .status-pill.CANCELLED{color:var(--danger);background:#fbeae6;border:1px solid #e3b8ab;}
+
+  /* ---------- Admin ---------- */
+  .admin-tabs{display:flex;gap:2px;margin:18px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .admin-tabs button{background:none;border:none;color:var(--ink-dim);padding:8px 14px;font-family:'Cinzel';text-transform:uppercase;font-size:11.5px;letter-spacing:0.04em;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .admin-tabs button.active{color:var(--gold-deep);border-color:var(--gold);}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:'Cinzel';font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-dim);padding:8px 10px;border-bottom:1px solid var(--border-lt);}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .mini-btn{background:var(--cloud2);border:1px solid var(--border-lt);color:var(--ink);padding:4px 9px;font-size:11px;cursor:pointer;border-radius:6px;margin-right:4px;}
+  .mini-btn:hover{border-color:var(--gold);}
+  .mini-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+  .status-select{background:var(--cloud2);border:1px solid var(--border-lt);color:var(--ink);padding:4px 6px;font-family:'Inter';font-size:11.5px;border-radius:6px;}
+  .admin-form{background:var(--cloud);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;}
+  .admin-form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .empty-state{color:var(--ink-dim);font-size:13px;padding:40px 0;text-align:center;border:1px dashed var(--border-lt);border-radius:12px;}
+  .order-code-cell{font-family:'JetBrains Mono';font-size:11px;color:var(--sky-deep);}
+
+  /* ---------- Chat ---------- */
+  .chat-wrap{display:flex;flex-direction:column;height:520px;background:var(--cloud);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+  .chat-msg{max-width:78%;padding:8px 12px;border-radius:10px;background:var(--cloud2);border:1px solid var(--border);font-size:13px;}
+  .chat-msg .who{font-family:'Cinzel';font-size:11px;color:var(--gold-deep);margin-bottom:2px;}
+  .chat-msg .who .owner-tag, .chat-msg .who .admin-tag{margin-left:6px;}
+  .chat-msg .when{font-size:9.5px;color:var(--ink-dim);margin-left:6px;}
+  .chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);}
+  .chat-input-row input{flex:1;}
+
+  @media(max-width:640px){
+    .admin-form .row{grid-template-columns:1fr;}
+    table{display:block;overflow-x:auto;white-space:nowrap;}
+    .splash-title{font-size:36px;}
+  }
+
+  /* ---------- Toasts ---------- */
+  .toast-stack{position:fixed;top:16px;right:16px;z-index:500;display:flex;flex-direction:column;gap:8px;}
+  .toast{
+    background:var(--cloud);border:1px solid var(--border);border-left:4px solid var(--gold);
+    border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 6px 20px rgba(140,109,31,0.18);
+    max-width:300px;animation:toastIn 0.3s ease;color:var(--ink);
+  }
+  .toast.error{border-left-color:var(--danger);}
+  .toast.success{border-left-color:var(--success);}
+  @keyframes toastIn{ from{ opacity:0; transform:translateX(30px); } to{ opacity:1; transform:translateX(0); } }
+  @keyframes toastOut{ to{ opacity:0; transform:translateX(30px); } }
+
+  /* ---------- Buttons: press feedback ---------- */
+  .btn, .mini-btn{ transition:transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease; }
+  .btn:active, .mini-btn:active{ transform:scale(0.96); }
+
+  /* ---------- Confetti / sparkle win effect ---------- */
+  .confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:400;overflow:hidden;}
+  .confetti-piece{
+    position:absolute;top:-20px;width:8px;height:14px;opacity:0.9;
+    animation:confettiFall linear forwards;
+  }
+  @keyframes confettiFall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; }
+  }
+  .win-glow{
+    animation:winPulse 1.4s ease-in-out 2;
+  }
+  @keyframes winPulse{
+    0%,100%{ box-shadow:0 0 0 rgba(201,162,74,0); }
+    50%{ box-shadow:0 0 40px rgba(201,162,74,0.55); }
+  }
+  .screen-flash{
+    position:fixed;inset:0;z-index:998;pointer-events:none;
+    background:radial-gradient(circle at 50% 38%, rgba(255,255,255,0.9), rgba(255,246,217,0.25) 45%, rgba(255,255,255,0) 70%);
+    animation:flashPulse 0.7s ease-out forwards;
+  }
+  @keyframes flashPulse{ from{ opacity:1; } to{ opacity:0; } }
+  .wheel-shake{ animation:wheelShake 0.4s ease; }
+  @keyframes wheelShake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-4px); }
+    40%{ transform:translateX(4px); }
+    60%{ transform:translateX(-3px); }
+    80%{ transform:translateX(3px); }
+  }
+  .wheel-pointer{ animation:pointerGlow 1.4s ease-in-out infinite; }
+  @keyframes pointerGlow{
+    0%,100%{ filter:drop-shadow(0 0 2px var(--gold)); }
+    50%{ filter:drop-shadow(0 0 9px var(--gold)); }
+  }
+
+  /* ---------- Brand sparkle ---------- */
+  .brand .mark{ position:relative; }
+  .brand .mark::after{
+    content:'';position:absolute;inset:-4px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,246,217,0.6), transparent 70%);
+    animation:sparklePulse 2.6s ease-in-out infinite;
+  }
+  @keyframes sparklePulse{
+    0%,100%{ opacity:0.4; transform:scale(0.9); }
+    50%{ opacity:0.9; transform:scale(1.15); }
+  }
+
+  /* ---------- View fade transition ---------- */
+  .view-fade{ animation:viewFadeIn 0.35s ease; }
+  @keyframes viewFadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+
+  /* ---------- Pack badges (Random Godlys) ---------- */
+  .pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px;margin-top:18px;}
+  .pack-card{
+    background:var(--cloud);border:1px solid var(--border);border-radius:16px;padding:0;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:0 2px 14px rgba(140,109,31,0.08);position:relative;
+    transition:transform 0.15s;
+  }
+  .pack-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(140,109,31,0.16);}
+  .pack-card.ribbon::before{
+    content:attr(data-ribbon);position:absolute;top:12px;right:-30px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+    color:#fff;font-family:'Cinzel';font-size:10px;letter-spacing:0.05em;padding:4px 34px;transform:rotate(40deg);
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);z-index:2;
+  }
+  .pack-badge{
+    height:120px;display:flex;align-items:center;justify-content:center;position:relative;
+    background:radial-gradient(circle at 50% 30%, var(--halo), var(--cloud2) 75%);
+    border-bottom:1px solid var(--border);
+  }
+  .pack-badge-circle{
+    width:76px;height:76px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--gold) 75%);
+    box-shadow:0 0 22px rgba(201,162,74,0.5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'Cinzel';font-weight:700;color:#5c4413;
+  }
+  .pack-badge-circle .n{font-size:22px;line-height:1;}
+  .pack-badge-circle .icon{font-size:14px;}
+  .pack-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;}
+  .pack-title{font-family:'Cinzel';font-size:15px;color:var(--ink);}
+  .pack-worth{font-size:11px;color:var(--sky-deep);}
+  .pack-price-row{display:flex;align-items:baseline;gap:8px;margin-top:4px;}
+  .pack-was{font-size:12px;color:var(--ink-dim);text-decoration:line-through;}
+  .pack-now{font-family:'JetBrains Mono';font-size:20px;font-weight:600;color:var(--gold-deep);}
+  .pack-each{font-size:10.5px;color:var(--ink-dim);}
+
+  /* ---------- Spin balance chip ---------- */
+  .spin-balance-chip{
+    display:inline-flex;align-items:center;gap:6px;background:var(--halo);border:1px solid var(--gold-soft);
+    color:var(--gold-deep);font-family:'Cinzel';font-size:12px;padding:6px 14px;border-radius:20px;margin-bottom:14px;
+  }
+
+  /* ---------- Site-wide animated background ---------- */
+  .site-bg{
+    position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+  }
+  /* Slowly panning wash — replaces the old static gradient, but its position
+     drifts continuously so the whole page background feels alive. */
+  .bg-wash{
+    position:absolute;inset:-15%;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% 0%, var(--halo), transparent 60%),
+      linear-gradient(180deg, #fdfaf1 0%, var(--ivory) 45%);
+    background-size:140% 140%;
+    animation:washPan 26s ease-in-out infinite;
+  }
+  [data-theme="dark"] .bg-wash{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% 0%, var(--halo), transparent 60%),
+      linear-gradient(180deg, #171226 0%, var(--ivory) 45%);
+    background-size:140% 140%;
+  }
+  @keyframes washPan{
+    0%,100%{ background-position:0% 0%; }
+    50%{ background-position:30% 20%; }
+  }
+  .bg-orb{
+    position:absolute;border-radius:50%;filter:blur(50px);opacity:0.7;
+    background:radial-gradient(circle at 50% 50%, var(--halo), transparent 70%);
+    will-change:transform;
+  }
+  .bg-orb.o1{width:520px;height:520px;top:-140px;left:-120px;animation:orbDrift1 20s ease-in-out infinite;}
+  .bg-orb.o2{width:420px;height:420px;bottom:-120px;right:-100px;background:radial-gradient(circle at 50% 50%, rgba(127,178,217,0.45), transparent 70%);animation:orbDrift2 24s ease-in-out infinite;}
+  .bg-orb.o3{width:360px;height:360px;top:35%;left:55%;background:radial-gradient(circle at 50% 50%, rgba(201,162,74,0.4), transparent 70%);animation:orbDrift3 28s ease-in-out infinite;}
+  .bg-orb.o4{width:300px;height:300px;top:10%;right:10%;background:radial-gradient(circle at 50% 50%, rgba(159,122,217,0.32), transparent 70%);animation:orbDrift4 22s ease-in-out infinite;}
+  @keyframes orbDrift1{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(160px,110px) scale(1.2); }
+  }
+  @keyframes orbDrift2{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(-140px,-100px) scale(1.15); }
+  }
+  @keyframes orbDrift3{
+    0%,100%{ transform:translate(0,0) scale(0.95); }
+    50%{ transform:translate(-120px,130px) scale(1.05); }
+  }
+  @keyframes orbDrift4{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(90px,-80px) scale(0.9); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .bg-orb, .bg-wash{ animation:none; }
+  }
+
+  /* ---------- Wallet ---------- */
+  .wallet-chip{
+    position:relative;
+    display:flex;align-items:center;gap:6px;background:var(--cloud2);border:1px solid var(--border-lt);
+    padding:5px 6px 5px 12px;border-radius:20px;font-size:12.5px;color:var(--ink);cursor:pointer;
+  }
+  .wallet-chip:hover{border-color:var(--gold);}
+  .wallet-chip .amt{font-family:'JetBrains Mono';color:var(--gold-deep);font-weight:600;transition:color 0.3s ease;}
+  .wallet-chip.wallet-pulse{ animation:walletChipPulse 0.7s ease; }
+  .wallet-chip.wallet-pulse .amt{ color:var(--success); }
+  @keyframes walletChipPulse{
+    0%{ transform:scale(1); box-shadow:0 0 0 rgba(79,143,95,0); }
+    35%{ transform:scale(1.1); box-shadow:0 0 16px rgba(79,143,95,0.55); }
+    100%{ transform:scale(1); box-shadow:0 0 0 rgba(79,143,95,0); }
+  }
+  .wallet-pop{
+    position:absolute;top:-8px;right:-4px;
+    background:var(--success);color:#fff;font-family:'JetBrains Mono';font-size:11px;font-weight:700;
+    padding:2px 8px;border-radius:10px;white-space:nowrap;pointer-events:none;
+    box-shadow:0 3px 10px rgba(0,0,0,0.18);
+    animation:walletPop 2.2s ease forwards;
+  }
+  @keyframes walletPop{
+    0%{ opacity:0; transform:translate(0,6px) scale(0.75); }
+    12%{ opacity:1; transform:translate(0,-4px) scale(1.08); }
+    28%{ transform:translate(0,-10px) scale(1); }
+    78%{ opacity:1; transform:translate(0,-24px) scale(1); }
+    100%{ opacity:0; transform:translate(0,-36px) scale(0.95); }
+  }
+  .wallet-plus{
+    width:22px;height:22px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+    color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .wallet-plus:hover{filter:brightness(1.08);}
+  .pay-method-row{display:flex;gap:10px;margin-bottom:14px;}
+  .pay-method-row label{
+    flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--border-lt);border-radius:10px;
+    padding:10px 12px;cursor:pointer;font-size:13px;color:var(--ink);
+  }
+  .pay-method-row input{width:auto;}
+  .pay-method-row label.checked{border-color:var(--gold);background:var(--halo);}
+  .affiliate-box{
+    display:flex;align-items:center;gap:10px;background:var(--halo);border:1px dashed var(--gold);
+    border-radius:10px;padding:10px 14px;margin:10px 0;
+  }
+  .affiliate-box .code{font-family:'JetBrains Mono';font-size:16px;font-weight:600;color:var(--gold-deep);letter-spacing:0.06em;}
+  .wallet-method-btns{display:flex;gap:10px;margin:10px 0 16px;}
+  .wallet-method-btns button{flex:1;}
+</style>
+</head>
+<body>
+<div class="site-bg" aria-hidden="true">
+  <div class="bg-wash"></div>
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+  <div class="bg-orb o4"></div>
+</div>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://sheuixzkqjljnwvammqv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_bqByJN3etJgatYlBB0V5wA_AGmSqLFV';
+// ============================================================
+
+const CONFIGURED = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 20;
+const sb = CONFIGURED ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const SESSION_ID = (crypto.randomUUID ? crypto.randomUUID() : 'sess-'+Date.now()+'-'+Math.random());
+
+let diagnostic = { checked:false, working:false, detail:'' };
+
+async function runStorageDiagnostic(){
+  diagnostic.checked = true;
+  if(!CONFIGURED){
+    diagnostic.working = false;
+    diagnostic.detail = 'Supabase URL/key are not set. Edit the top of the script.';
+    return;
+  }
+  try{
+    const { error } = await sb.from('catalog').select('id').limit(1);
+    if(error){
+      diagnostic.working = false;
+      diagnostic.detail = 'Connected to Supabase, but the query failed: ' + error.message + '. Make sure you ran the setup SQL script.';
+      return;
+    }
+    diagnostic.working = true;
+    diagnostic.detail = 'Connected to Supabase successfully.';
+  } catch(e){
+    diagnostic.working = false;
+    diagnostic.detail = 'Could not reach Supabase: ' + (e && e.message ? e.message : String(e));
+  }
+}
+
+function storageAvailable(){ return diagnostic.working; }
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function genOrderCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  let out = '';
+  for(let i=0;i<10;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+// Random mix of upper/lower/digits for affiliate codes
+function genAffiliateCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
+  let out = '';
+  for(let i=0;i<8;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+// Fixed reward paid to each side of a successful referral
+const REFERRAL_BONUS = 0.05;
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function orderNo(id){ return String(id).padStart(4,'0'); }
+
+// ---------- Sound effects (synthesized, no external files needed) ----------
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(Ctx) audioCtx = new Ctx();
+  }
+  return audioCtx;
+}
+function playTone(freq, duration, type='sine', gainStart=0.08, delay=0){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(gainStart, ctx.currentTime+delay);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+delay+duration);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(ctx.currentTime+delay);
+  osc.stop(ctx.currentTime+delay+duration+0.02);
+}
+const SFX = {
+  click(){ playTone(720, 0.06, 'triangle', 0.05); },
+  add(){ playTone(520,0.08,'sine',0.07); playTone(780,0.09,'sine',0.05,0.05); },
+  success(){ playTone(523,0.12,'sine',0.08); playTone(659,0.12,'sine',0.07,0.1); playTone(784,0.18,'sine',0.07,0.2); },
+  error(){ playTone(200,0.18,'sawtooth',0.06); },
+  spinStart(){ playTone(300,0.4,'sawtooth',0.04); },
+  tick(){ playTone(600+Math.random()*140, 0.035, 'square', 0.05); },
+  thud(){ playTone(110, 0.18, 'sine', 0.09); },
+  win(){
+    playTone(523,0.1,'sine',0.09); playTone(659,0.1,'sine',0.08,0.09); playTone(784,0.1,'sine',0.08,0.18);
+    playTone(988,0.12,'sine',0.08,0.27); playTone(1318,0.35,'sine',0.09,0.36); playTone(1568,0.4,'sine',0.06,0.42);
+  },
+  chat(){ playTone(880,0.05,'sine',0.05); },
+};
+
+// Decelerating "ticker" sound while the wheel spins — ticks bunch up early
+// (fast spin) and spread out near the end (slowing to a stop).
+function scheduleWheelTicks(totalMs){
+  const tickCount = 36;
+  for(let i=1;i<=tickCount;i++){
+    const p = i/tickCount;
+    const t = totalMs * Math.pow(p, 2.3);
+    setTimeout(()=>SFX.tick(), t);
+  }
+}
+
+// ---------- Toasts ----------
+function ensureToastStack(){
+  let stack = document.getElementById('toast-stack');
+  if(!stack){
+    stack = document.createElement('div');
+    stack.id = 'toast-stack';
+    stack.className = 'toast-stack';
+    document.body.appendChild(stack);
+  }
+  return stack;
+}
+function toast(message, kind='info'){
+  const stack = ensureToastStack();
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind==='error' ? ' error' : kind==='success' ? ' success' : '');
+  el.textContent = message;
+  stack.appendChild(el);
+  if(kind==='error') SFX.error();
+  setTimeout(()=>{
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(()=>el.remove(), 300);
+  }, 3400);
+}
+
+// ---------- Theme ----------
+function getSavedTheme(){
+  try{ return localStorage.getItem('ascend-theme') || 'light'; } catch(e){ return 'light'; }
+}
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  try{ localStorage.setItem('ascend-theme', theme); }catch(e){}
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// ---------- Confetti ----------
+function fireConfetti(pieceCount=50){
+  const layer = document.createElement('div');
+  layer.className = 'confetti-layer';
+  document.body.appendChild(layer);
+  const colors = ['#c9a24a','#f0cc7a','#7fb2d9','#ffffff','#e8d9ad','#b3432f','#4f8f5f','#9b7fd9'];
+  for(let i=0;i<pieceCount;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration = (2 + Math.random()*1.5) + 's';
+    p.style.animationDelay = (Math.random()*0.4) + 's';
+    p.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+    layer.appendChild(p);
+  }
+  setTimeout(()=>layer.remove(), 4000);
+}
+function fireScreenFlash(){
+  const flash = document.createElement('div');
+  flash.className = 'screen-flash';
+  document.body.appendChild(flash);
+  setTimeout(()=>flash.remove(), 700);
+}
+
+// ---------- Moderation ----------
+const DEFAULT_CURSE_WORDS = ['fuck','shit','bitch','asshole','cunt','nigger','faggot','retard'];
+const RESERVED_WORD = 'ascend';
+
+let customBlockedWords = [];
+
+function containsBlockedWord(text){
+  const lower = text.toLowerCase();
+  for(const w of DEFAULT_CURSE_WORDS){ if(lower.includes(w)) return w; }
+  for(const w of customBlockedWords){ if(w && lower.includes(w.toLowerCase())) return w; }
+  return null;
+}
+
+function containsReservedWord(text, isOwnerSender){
+  if(isOwnerSender) return false;
+  return text.toLowerCase().includes(RESERVED_WORD);
+}
+
+function looksLikeSpam(text, lastMsg){
+  const t = text.trim();
+  if(t.length === 0) return 'Message is empty.';
+  if(t.length > 400) return 'Message is too long.';
+  if(/(.)\1{7,}/i.test(t)) return 'Message looks like spam (repeated characters).';
+  if(lastMsg && lastMsg.trim().toLowerCase() === t.toLowerCase()) return 'You just sent that message.';
+  const linkCount = (t.match(/https?:\/\//g)||[]).length;
+  if(linkCount > 2) return 'Too many links in one message.';
+  return null;
+}
+
+// ============================================================
+// DATA LAYER
+// ============================================================
+
+const SEED_CATALOG = [
+  {name:'Chroma Lightbringer', price:850, stock:4, image:'', emoji:'🔪'},
+  {name:'Heavenly Halo', price:1200, stock:2, image:'', emoji:'😇'},
+  {name:'Eagle', price:600, stock:6, image:'', emoji:'🦅'},
+  {name:'Nightmare', price:950, stock:0, image:'', emoji:'💀'},
+  {name:'Slasher', price:400, stock:9, image:'', emoji:'🗡️'},
+  {name:'Icewing', price:1100, stock:3, image:'', emoji:'❄️'},
+];
+
+async function loadCatalog(){
+  if(!storageAvailable()){ state.catalog = []; return; }
+  const { data, error } = await sb.from('catalog').select('*').order('id');
+  if(error){ console.error(error); state.catalog = []; return; }
+  if(data.length === 0){
+    const { data: inserted, error: insertErr } = await sb.from('catalog').insert(SEED_CATALOG).select();
+    state.catalog = insertErr ? [] : inserted;
+  } else {
+    state.catalog = data;
+  }
+}
+
+async function saveCatalogItem(item){
+  if(item.id){
+    const { error } = await sb.from('catalog').update({
+      name:item.name, price:item.price, stock:item.stock, image:item.image, emoji:item.emoji
+    }).eq('id', item.id);
+    if(error) console.error(error);
+  } else {
+    const { error } = await sb.from('catalog').insert({
+      name:item.name, price:item.price, stock:item.stock, image:item.image, emoji:item.emoji
+    });
+    if(error) console.error(error);
+  }
+}
+
+async function deleteCatalogItemDB(id){
+  const { error } = await sb.from('catalog').delete().eq('id', id);
+  if(error) console.error(error);
+}
+
+async function updateCatalogStock(id, stock){
+  const { error } = await sb.from('catalog').update({ stock }).eq('id', id);
+  if(error) console.error(error);
+}
+
+async function loadMyOrders(){
+  if(!state.user){ state.myOrders = []; return; }
+  const { data, error } = await sb.from('orders').select('*').eq('username', state.user.username).order('created_at', { ascending:false });
+  state.myOrders = error ? [] : data;
+}
+
+async function loadAllOrders(){
+  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending:false });
+  state.allOrders = error ? [] : data;
+}
+
+async function loadOrdersForUser(username){
+  const { data, error } = await sb.from('orders').select('*').eq('username', username).order('created_at', { ascending:false });
+  return error ? [] : data;
+}
+
+async function loadAllUsers(){
+  const { data, error } = await sb.from('app_users').select('username, is_admin, is_owner, chat_banned').order('id');
+  state.allUsers = error ? [] : data;
+}
+
+async function registerUser(username, password, referralCodeRaw){
+  username = username.trim();
+  if(!username || !password) return 'Enter a username and password.';
+  if(username.length < 3) return 'Username must be at least 3 characters.';
+  if(password.length < 4) return 'Password must be at least 4 characters.';
+
+  const isExactOwnerName = username.toLowerCase() === RESERVED_WORD;
+  if(!isExactOwnerName && username.toLowerCase().includes(RESERVED_WORD)){
+    return 'That username is reserved.';
+  }
+  if(containsBlockedWord(username)){
+    return 'That username isn\'t allowed. Please choose another.';
+  }
+
+  const { data: existing } = await sb.from('app_users').select('id').eq('username', username).maybeSingle();
+  if(existing) return 'That username is already on file.';
+
+  // Resolve an optional referral code before creating the account
+  let referrer = null;
+  const referralCode = (referralCodeRaw||'').trim();
+  if(referralCode){
+    const { data: refRow } = await sb.from('app_users').select('username, wallet_balance').eq('affiliate_code', referralCode).maybeSingle();
+    if(!refRow) return 'That affiliate code was not found.';
+    referrer = refRow;
+  }
+
+  const { count } = await sb.from('app_users').select('id', { count:'exact', head:true });
+  const isFirstEver = (count || 0) === 0;
+  const isAdmin = isFirstEver || isExactOwnerName;
+  const isOwner = isExactOwnerName;
+
+  // Generate a unique affiliate code (retry on the rare collision)
+  let affiliateCode = genAffiliateCode();
+  for(let i=0;i<5;i++){
+    const { data: clash } = await sb.from('app_users').select('id').eq('affiliate_code', affiliateCode).maybeSingle();
+    if(!clash) break;
+    affiliateCode = genAffiliateCode();
+  }
+
+  const startingWallet = referrer ? REFERRAL_BONUS : 0;
+  const passwordHash = await sha256(password + ':' + username.toLowerCase());
+  const { error } = await sb.from('app_users').insert({
+    username, password_hash: passwordHash, is_admin: isAdmin, is_owner: isOwner,
+    affiliate_code: affiliateCode, referred_by: referrer ? referrer.username : null,
+    wallet_balance: startingWallet
+  });
+  if(error) return 'Could not create account: ' + error.message;
+
+  if(referrer){
+    await sb.from('app_users').update({ wallet_balance: (referrer.wallet_balance||0) + REFERRAL_BONUS }).eq('username', referrer.username);
+  }
+
+  state.user = { username, isAdmin, isOwner, chatBanned:false, spinBalance:0, walletBalance:startingWallet, affiliateCode };
+  return null;
+}
+
+async function loginUser(username, password){
+  username = username.trim();
+  if(!username || !password) return 'Enter a username and password.';
+
+  const { data: record, error } = await sb.from('app_users').select('*').eq('username', username).maybeSingle();
+  if(error || !record) return 'No account found for that username.';
+
+  const passwordHash = await sha256(password + ':' + username.toLowerCase());
+  if(passwordHash !== record.password_hash) return 'Incorrect password.';
+
+  state.user = {
+    username: record.username, isAdmin: !!record.is_admin, isOwner: !!record.is_owner,
+    chatBanned: !!record.chat_banned, spinBalance: record.spin_balance||0,
+    walletBalance: record.wallet_balance||0, affiliateCode: record.affiliate_code||''
+  };
+  return null;
+}
+
+async function refreshSpinBalance(){
+  if(!state.user) return;
+  const { data } = await sb.from('app_users').select('spin_balance').eq('username', state.user.username).maybeSingle();
+  state.user.spinBalance = data ? (data.spin_balance||0) : 0;
+}
+
+async function refreshWalletBalance(){
+  if(!state.user) return;
+  const { data } = await sb.from('app_users').select('wallet_balance, affiliate_code').eq('username', state.user.username).maybeSingle();
+  state.user.walletBalance = data ? (data.wallet_balance||0) : 0;
+  if(data && data.affiliate_code) state.user.affiliateCode = data.affiliate_code;
+}
+
+// Polls the wallet balance and — if it went up since the last check (e.g. an
+// admin just approved a top-up or a referral bonus landed) — flashes a
+// "+$X" pop animation on the wallet chip without needing a refresh/relogin.
+async function pollWalletBalance(){
+  if(!state.user) return;
+  const prev = state.user.walletBalance || 0;
+  const { data, error } = await sb.from('app_users').select('wallet_balance, affiliate_code').eq('username', state.user.username).maybeSingle();
+  if(error || !data) return;
+  const next = data.wallet_balance || 0;
+  state.user.walletBalance = next;
+  if(data.affiliate_code) state.user.affiliateCode = data.affiliate_code;
+  if(next > prev + 0.001){
+    const delta = next - prev;
+    state.walletDelta = delta;
+    const active = document.activeElement;
+    const isTyping = active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName);
+    if(!isTyping){
+      SFX.success();
+      render();
+      setTimeout(()=>{ state.walletDelta = null; render(); }, 2200);
+    } else {
+      // don't yank focus away mid-typing — still clear the flag after a delay
+      setTimeout(()=>{ state.walletDelta = null; }, 2200);
+    }
+  }
+}
+
+
+function logout(){
+  state.user = null;
+  state.cart = {};
+  state.view = 'catalog';
+  render();
+}
+
+// ---------- Cart (persisted for global "in X carts" counts) ----------
+async function syncCartItem(itemId, qty){
+  if(!state.user) return;
+  try{
+    if(qty <= 0){
+      const { error } = await sb.from('cart_items').delete().eq('username', state.user.username).eq('item_id', itemId);
+      if(error) console.error('cart sync (remove) failed:', error.message);
+    } else {
+      const { error } = await sb.from('cart_items').upsert({ username: state.user.username, item_id: itemId, qty, updated_at: new Date().toISOString() });
+      if(error) console.error('cart sync (upsert) failed:', error.message);
+    }
+  } catch(e){
+    console.error('cart sync failed:', e);
+  }
+}
+
+async function clearMyCartItems(){
+  if(!state.user) return;
+  try{
+    await sb.from('cart_items').delete().eq('username', state.user.username);
+  } catch(e){
+    console.error('clearing cart_items failed:', e);
+  }
+}
+
+async function loadCartCounts(){
+  const { data } = await sb.from('cart_items').select('item_id, qty').gt('qty', 0);
+  const counts = {};
+  (data||[]).forEach(row=>{
+    counts[row.item_id] = (counts[row.item_id]||0) + 1; // count distinct carts, not qty
+  });
+  state.cartCounts = counts;
+}
+
+// ---------- Presence (viewers) ----------
+async function pingPresence(itemId){
+  await sb.from('item_presence').upsert({ session_id: SESSION_ID, item_id: itemId, updated_at: new Date().toISOString() });
+}
+
+async function loadPresenceCounts(){
+  const cutoff = new Date(Date.now() - 20000).toISOString();
+  const { data } = await sb.from('item_presence').select('item_id, session_id, updated_at').gt('updated_at', cutoff);
+  const counts = {};
+  (data||[]).forEach(row=>{
+    if(row.session_id === SESSION_ID) return; // don't count yourself
+    counts[row.item_id] = (counts[row.item_id]||0) + 1;
+  });
+  state.viewCounts = counts;
+}
+
+async function placeOrder(){
+  const items = Object.entries(state.cart)
+    .filter(([id,qty])=>qty>0)
+    .map(([id,qty])=>{
+      const item = state.catalog.find(i=>String(i.id)===String(id));
+      return item ? {id:item.id, name:item.name, price:item.price, qty} : null;
+    }).filter(Boolean);
+  if(items.length===0) return;
+
+  for(const line of items){
+    const catItem = state.catalog.find(i=>i.id===line.id);
+    if(!catItem || catItem.stock < line.qty){
+      toast('Not enough stock for '+line.name+'. Refresh and try again.', 'error');
+      return;
+    }
+  }
+
+  const subtotal = items.reduce((s,i)=>s+i.price*i.qty, 0);
+  if(state.appliedPromo && state.appliedPromo.min_spend && subtotal < state.appliedPromo.min_spend){
+    toast(`That code needs a minimum spend of $${Number(state.appliedPromo.min_spend).toFixed(2)}.`, 'error');
+    state.appliedPromo = null; state.promoInput = ''; render();
+    return;
+  }
+  const discount = computeDiscount(state.appliedPromo, subtotal);
+  const total = Math.max(0, subtotal - discount);
+  const payment_method = state.payMethod === 'ROBUX' ? 'ROBUX' : 'USD';
+  const robux_amount = payment_method === 'ROBUX' ? Math.round(total * (state.robuxRate||100)) : null;
+  const order_code = genOrderCode();
+  const { data: inserted, error } = await sb.from('orders').insert({
+    username: state.user.username, items, total, status:'PENDING', order_code,
+    promo_code: state.appliedPromo ? state.appliedPromo.code : null,
+    discount_amount: discount, payment_method, robux_amount
+  }).select().maybeSingle();
+  if(error){ toast('Could not file order: ' + error.message, 'error'); return; }
+
+  for(const line of items){
+    const catItem = state.catalog.find(i=>i.id===line.id);
+    if(catItem){
+      catItem.stock -= line.qty;
+      await updateCatalogStock(catItem.id, catItem.stock);
+    }
+  }
+
+  state.cart = {};
+  await clearMyCartItems();
+  state.cartOpen = false;
+  state.appliedPromo = null;
+  state.promoInput = '';
+  state.payMethod = 'USD';
+  state.lastOrderCode = order_code;
+  await loadMyOrders();
+  state.view = 'orders';
+  render();
+}
+
+async function updateOrderStatus(orderId, status){
+  const { error } = await sb.from('orders').update({ status }).eq('id', orderId);
+  if(error) console.error(error);
+  await loadAllOrders();
+  render();
+}
+
+async function toggleAdmin(username, makeAdmin){
+  const { error } = await sb.from('app_users').update({ is_admin: makeAdmin }).eq('username', username);
+  if(error) console.error(error);
+  await loadAllUsers();
+  render();
+}
+
+async function toggleChatBan(username, banned){
+  const { error } = await sb.from('app_users').update({ chat_banned: banned }).eq('username', username);
+  if(error) console.error(error);
+  await loadAllUsers();
+  render();
+}
+
+// ---------- Reviews ----------
+async function loadReviews(){
+  const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending:false });
+  state.reviews = error ? [] : data;
+}
+async function submitReview(rating, comment){
+  if(!comment.trim()) return 'Write a short comment first.';
+  const { error } = await sb.from('reviews').insert({ username: state.user.username, rating, comment: comment.trim() });
+  if(error) return 'Could not submit review: ' + error.message;
+  await loadReviews();
+  return null;
+}
+async function checkReviewEligibility(){
+  const { count } = await sb.from('orders').select('id', { count:'exact', head:true })
+    .eq('username', state.user.username).eq('status', 'FULFILLED');
+  state.reviewEligible = (count || 0) > 0;
+}
+
+// ---------- Wheel ----------
+async function loadWheelConfig(){
+  const { data: priceRow } = await sb.from('settings').select('value').eq('key','wheel_price').maybeSingle();
+  state.wheelPrice = priceRow ? parseInt(priceRow.value, 10) : 500;
+  const { data: items } = await sb.from('catalog').select('*').eq('in_wheel', true).gt('stock', 0).order('wheel_order', { ascending:true });
+  state.wheelItems = items || [];
+}
+async function loadWheelConfigAdmin(){
+  const { data: priceRow } = await sb.from('settings').select('value').eq('key','wheel_price').maybeSingle();
+  state.wheelPrice = priceRow ? parseInt(priceRow.value, 10) : 500;
+}
+async function saveWheelPrice(price){
+  await sb.from('settings').update({ value:String(price) }).eq('key','wheel_price');
+  state.wheelPrice = price;
+}
+async function toggleWheelItem(id, inWheel){
+  if(inWheel){
+    const maxOrder = state.catalog.reduce((m,i)=> (i.in_wheel && i.wheel_order!=null && i.wheel_order>m) ? i.wheel_order : m, 0);
+    const wheel_order = maxOrder + 1;
+    await sb.from('catalog').update({ in_wheel:true, wheel_order }).eq('id', id);
+    const item = state.catalog.find(i=>i.id===id);
+    if(item){ item.in_wheel = true; item.wheel_order = wheel_order; }
+  } else {
+    await sb.from('catalog').update({ in_wheel:false, wheel_order:null }).eq('id', id);
+    const item = state.catalog.find(i=>i.id===id);
+    if(item){ item.in_wheel = false; item.wheel_order = null; }
+  }
+}
+async function moveWheelItem(id, direction){
+  const ranked = state.catalog.filter(i=>i.in_wheel).sort((a,b)=>(a.wheel_order||0)-(b.wheel_order||0));
+  const idx = ranked.findIndex(i=>i.id===id);
+  const swapIdx = direction==='up' ? idx-1 : idx+1;
+  if(idx<0 || swapIdx<0 || swapIdx>=ranked.length) return;
+  const a = ranked[idx], b = ranked[swapIdx];
+  const aOrder = a.wheel_order, bOrder = b.wheel_order;
+  await sb.from('catalog').update({ wheel_order: bOrder }).eq('id', a.id);
+  await sb.from('catalog').update({ wheel_order: aOrder }).eq('id', b.id);
+  a.wheel_order = bOrder; b.wheel_order = aOrder;
+}
+async function placeWheelOrder(item, pricePaid){
+  const order_code = genOrderCode();
+  const { error } = await sb.from('orders').insert({
+    username: state.user.username,
+    items: [{id:item.id, name:item.name + ' (Wheel)', price:pricePaid, qty:1}],
+    total: pricePaid,
+    status: 'PENDING',
+    order_code
+  });
+  if(error){ toast('Could not file wheel order: ' + error.message, 'error'); return; }
+  await updateCatalogStock(item.id, item.stock - 1);
+  item.stock -= 1;
+  state.lastOrderCode = order_code;
+  await loadMyOrders();
+}
+
+// ---------- Spin keys ----------
+async function loadSpinKeys(){
+  const { data, error } = await sb.from('spin_keys').select('*').order('created_at', { ascending:false });
+  state.spinKeys = error ? [] : data;
+}
+async function generateSpinKey(spins){
+  const code = genOrderCode();
+  const { error } = await sb.from('spin_keys').insert({ code, spins, status:'unused' });
+  if(error){ toast('Could not generate key: '+error.message, 'error'); return; }
+  await loadSpinKeys();
+}
+async function activateSpinKey(code, username){
+  username = username.trim();
+  if(!username){ toast('Enter a username to activate this key for.', 'error'); return; }
+  const { data: key, error: keyErr } = await sb.from('spin_keys').select('*').eq('code', code).maybeSingle();
+  if(keyErr || !key){ toast('Key not found.', 'error'); return; }
+  if(key.status === 'activated'){ toast('This key has already been activated.', 'error'); return; }
+  const { data: userRow, error: userErr } = await sb.from('app_users').select('username, spin_balance').ilike('username', username).maybeSingle();
+  if(userErr){ toast('Could not look up user: ' + userErr.message, 'error'); return; }
+  if(!userRow){ toast('No user found with that username.', 'error'); return; }
+  const actualUsername = userRow.username;
+  await sb.from('app_users').update({ spin_balance: (userRow.spin_balance||0) + key.spins }).eq('username', actualUsername);
+  await sb.from('spin_keys').update({ status:'activated', activated_username: actualUsername, activated_at: new Date().toISOString() }).eq('code', code);
+  toast(`Activated ${key.spins} spin(s) for ${actualUsername}.`, 'success');
+  await loadSpinKeys();
+}
+async function consumeSpin(){
+  if(!state.user || state.user.spinBalance<=0) return false;
+  const newBalance = state.user.spinBalance - 1;
+  const { error } = await sb.from('app_users').update({ spin_balance: newBalance }).eq('username', state.user.username);
+  if(error) return false;
+  state.user.spinBalance = newBalance;
+  return true;
+}
+
+// ---------- Wallet top-ups (Apple Pay / Venmo, manually approved) ----------
+// Nothing here charges a real card automatically — the person sends money to the
+// owner's Apple Pay/Venmo directly, references the code shown, and an admin
+// approves the request here, which credits the wallet balance.
+async function createWalletTopupRequest(method, amount){
+  if(!state.user) return 'You need to be logged in.';
+  const amt = Number(amount);
+  if(isNaN(amt) || amt <= 0) return 'Enter a valid amount.';
+  const code = genOrderCode();
+  const { error } = await sb.from('wallet_topups').insert({
+    username: state.user.username, method, amount: amt, code, status: 'pending'
+  });
+  if(error) return 'Could not file that request: ' + error.message;
+  state.lastWalletCode = code;
+  return null;
+}
+async function loadWalletRequests(){
+  const { data, error } = await sb.from('wallet_topups').select('*').order('created_at', { ascending:false });
+  state.walletRequests = error ? [] : data;
+}
+async function approveWalletRequest(id){
+  const { data: reqRow, error: reqErr } = await sb.from('wallet_topups').select('*').eq('id', id).maybeSingle();
+  if(reqErr || !reqRow){ toast('Request not found.', 'error'); return; }
+  if(reqRow.status !== 'pending'){ toast('That request was already handled.', 'error'); return; }
+  const { data: userRow, error: userErr } = await sb.from('app_users').select('wallet_balance').eq('username', reqRow.username).maybeSingle();
+  if(userErr || !userRow){ toast('User not found.', 'error'); return; }
+  await sb.from('app_users').update({ wallet_balance: (userRow.wallet_balance||0) + Number(reqRow.amount) }).eq('username', reqRow.username);
+  await sb.from('wallet_topups').update({ status:'approved' }).eq('id', id);
+  toast(`Credited $${Number(reqRow.amount).toFixed(2)} to ${reqRow.username}.`, 'success');
+  await loadWalletRequests();
+}
+async function rejectWalletRequest(id){
+  await sb.from('wallet_topups').update({ status:'rejected' }).eq('id', id);
+  await loadWalletRequests();
+}
+
+// ---------- Payment settings (USD / Robux) ----------
+async function loadRobuxRate(){
+  const { data } = await sb.from('settings').select('value').eq('key','robux_rate').maybeSingle();
+  state.robuxRate = data ? parseFloat(data.value) : 100;
+}
+async function saveRobuxRate(rate){
+  const { data: existing } = await sb.from('settings').select('key').eq('key','robux_rate').maybeSingle();
+  if(existing){
+    await sb.from('settings').update({ value:String(rate) }).eq('key','robux_rate');
+  } else {
+    await sb.from('settings').insert({ key:'robux_rate', value:String(rate) });
+  }
+  state.robuxRate = rate;
+}
+
+// ---------- Random Godly Packs ----------
+const GODLY_PACKS = [
+  { qty:1,   worth:2.50,   was:2.50,   now:1.00,  each:null },
+  { qty:5,   worth:14.00,  was:7.50,   now:5.00,  each:1.00 },
+  { qty:10,  worth:30.00,  was:12.00,  now:9.00,  each:0.90, ribbon:'QOC STARTS HERE' },
+  { qty:15,  worth:45.00,  was:17.50,  now:13.50, each:0.90 },
+  { qty:20,  worth:60.00,  was:25.00,  now:17.00, each:0.85, ribbon:'BEST SELLER' },
+  { qty:25,  worth:78.00,  was:30.00,  now:21.00, each:0.84 },
+  { qty:30,  worth:95.00,  was:35.00,  now:24.00, each:0.80 },
+  { qty:40,  worth:130.00, was:50.00,  now:32.00, each:0.80 },
+  { qty:50,  worth:170.00, was:65.00,  now:40.00, each:0.80, ribbon:'BEST VALUE' },
+  { qty:100, worth:340.00, was:150.00, now:75.00, each:0.75 },
+  { qty:150, worth:510.00, was:225.00, now:112.50,each:0.75 },
+  { qty:200, worth:680.00, was:300.00, now:150.00,each:0.75, ribbon:'ULTIMATE' },
+];
+
+async function loadRandomGodlyStock(){
+  const { data } = await sb.from('settings').select('value').eq('key','random_godly_stock').maybeSingle();
+  state.randomGodlyStock = data ? parseInt(data.value,10) : 275;
+}
+async function purchaseGodlyPack(pack){
+  if(state.randomGodlyStock < pack.qty){ toast('Not enough stock left for that pack size.', 'error'); return; }
+  const order_code = genOrderCode();
+  const { error } = await sb.from('orders').insert({
+    username: state.user.username,
+    items: [{ id:0, name: pack.qty+' Godly Random Pack', price: pack.now, qty:1 }],
+    total: pack.now,
+    status: 'PENDING',
+    order_code
+  });
+  if(error){ toast('Could not file order: '+error.message, 'error'); return; }
+  const newStock = state.randomGodlyStock - pack.qty;
+  await sb.from('settings').update({ value:String(newStock) }).eq('key','random_godly_stock');
+  state.randomGodlyStock = newStock;
+  state.lastOrderCode = order_code;
+  await loadMyOrders();
+  toast('Pack purchased! Your order code is ready under My Orders.', 'success');
+  SFX.success();
+  fireConfetti();
+}
+async function saveRandomGodlyStock(n){
+  await sb.from('settings').update({ value:String(n) }).eq('key','random_godly_stock');
+  state.randomGodlyStock = n;
+}
+
+// ---------- Promo Codes ----------
+async function loadPromoCodes(){
+  const { data, error } = await sb.from('promo_codes').select('*').order('created_at', { ascending:false });
+  state.promoCodes = error ? [] : data;
+}
+async function createPromoCode(code, type, value, minSpend){
+  code = code.trim().toUpperCase();
+  if(!code){ toast('Enter a code.', 'error'); return; }
+  if(isNaN(value) || value<=0){ toast('Enter a valid discount amount.', 'error'); return; }
+  if(type==='percent' && value>100){ toast('Percent discount cannot exceed 100.', 'error'); return; }
+  const min_spend = (minSpend===null || minSpend===undefined || isNaN(minSpend) || minSpend<0) ? 0 : minSpend;
+  const { error } = await sb.from('promo_codes').insert({ code, discount_type:type, discount_value:value, min_spend, active:true });
+  if(error){ toast('Could not create code: '+error.message, 'error'); return; }
+  toast(`Promo code ${code} created.`, 'success');
+  await loadPromoCodes();
+}
+async function togglePromoActive(code, active){
+  await sb.from('promo_codes').update({ active }).eq('code', code);
+  await loadPromoCodes();
+}
+async function deletePromoCode(code){
+  await sb.from('promo_codes').delete().eq('code', code);
+  await loadPromoCodes();
+}
+async function validatePromoCode(code){
+  code = code.trim().toUpperCase();
+  if(!code) return null;
+  const { data, error } = await sb.from('promo_codes').select('*').eq('code', code).eq('active', true).maybeSingle();
+  if(error || !data) return null;
+  return data;
+}
+function computeDiscount(promo, subtotal){
+  if(!promo) return 0;
+  if(promo.discount_type === 'percent') return Math.min(subtotal, subtotal * (promo.discount_value/100));
+  return Math.min(subtotal, promo.discount_value);
+}
+
+// ---------- Orders (delete) ----------
+async function deleteOrder(orderId){
+  const { data, error } = await sb.from('orders').delete().eq('id', orderId).select();
+  if(error){ toast('Could not delete order: '+error.message, 'error'); return; }
+  if(!data || data.length===0){
+    toast('Order was not deleted — this is likely a Supabase RLS permissions issue on the orders table.', 'error');
+    return;
+  }
+  state.myOrders = state.myOrders.filter(o=>o.id!==orderId);
+  state.allOrders = state.allOrders.filter(o=>o.id!==orderId);
+  toast('Order deleted.', 'success');
+}
+
+// ---------- Reviews (admin post) ----------
+async function postAdminReview(username, dateStr, rating, comment){
+  username = (username||'').trim();
+  if(!username) return 'Enter a username for this review.';
+  if(!comment || !comment.trim()) return 'Write a short comment first.';
+  const created_at = dateStr ? new Date(dateStr).toISOString() : new Date().toISOString();
+  const { error } = await sb.from('reviews').insert({ username, rating, comment: comment.trim(), created_at });
+  if(error) return 'Could not post review: ' + error.message;
+  await loadReviews();
+  return null;
+}
+async function deleteReview(id){
+  const { error } = await sb.from('reviews').delete().eq('id', id);
+  if(error){ toast('Could not delete review: '+error.message, 'error'); return; }
+  await loadReviews();
+}
+
+// ---------- Chat ----------
+async function loadBlockedWords(){
+  const { data } = await sb.from('blocked_words').select('word');
+  customBlockedWords = (data||[]).map(r=>r.word);
+}
+async function addBlockedWord(word){
+  word = word.trim().toLowerCase();
+  if(!word) return;
+  await sb.from('blocked_words').upsert({ word });
+  await loadBlockedWords();
+}
+async function removeBlockedWord(word){
+  await sb.from('blocked_words').delete().eq('word', word);
+  await loadBlockedWords();
+}
+async function loadChatMessages(){
+  const { data, error } = await sb.from('chat_messages').select('*').order('created_at', { ascending:true }).limit(150);
+  state.chatMessages = error ? [] : data;
+}
+async function sendChatMessage(text){
+  if(state.user.chatBanned) return 'You are banned from the global chat.';
+  const spamReason = looksLikeSpam(text, state.lastSentChatMsg);
+  if(spamReason) return spamReason;
+  if(containsReservedWord(text, state.user.isOwner)) return 'That word is reserved and cannot be used.';
+  const badWord = containsBlockedWord(text);
+  if(badWord) return 'Your message contains blocked language.';
+
+  const { error } = await sb.from('chat_messages').insert({ username: state.user.username, message: text.trim() });
+  if(error) return 'Could not send message: ' + error.message;
+  state.lastSentChatMsg = text;
+  await loadChatMessages();
+  return null;
+}
+async function deleteChatMessage(id){
+  await sb.from('chat_messages').delete().eq('id', id);
+  await loadChatMessages();
+  render();
+}
+let state = {
+  user: null,
+  view: 'catalog',
+  authTab: 'login',
+  catalog: [],
+  cart: {},
+  pendingQty: {},
+  myOrders: [],
+  allOrders: [],
+  allUsers: [],
+  inspectingUser: null,
+  inspectingOrders: [],
+  adminTab: 'orders',
+  loading: true,
+  cartOpen: false,
+  authError: '',
+  editingItem: null,
+  reviews: [],
+  reviewEligible: false,
+  reviewDraftRating: 5,
+  reviewError: '',
+  adminReviewRating: 5,
+  adminReviewError: '',
+  wheelItems: [],
+  wheelPrice: 500,
+  spinning: false,
+  spinResult: null,
+  lastOrderCode: null,
+  chatMessages: [],
+  chatError: '',
+  lastSentChatMsg: '',
+  blockedWordDraft: '',
+  cartCounts: {},
+  viewCounts: {},
+  showSplash: false,
+  splashDone: false,
+  spinKeys: [],
+  randomGodlyStock: 275,
+  showBuySpinsModal: false,
+  newKeySpins: 5,
+  promoCodes: [],
+  promoInput: '',
+  appliedPromo: null,
+  promoError: '',
+  newPromoType: 'percent',
+
+  // ---- Wallet / affiliate ----
+  showWalletModal: false,
+  walletMethod: null,        // 'apple_pay' | 'venmo' while filling out add-funds form
+  walletAmount: '',
+  walletError: '',
+  walletRequests: [],        // admin: pending/all wallet top-up requests
+  affiliateInput: '',
+  lastWalletCode: null,
+  walletDelta: null,         // amount of a just-detected wallet credit, for the pop animation
+
+  // ---- Payments (USD / Robux) ----
+  robuxRate: 100,            // Robux per $1 (admin-configurable)
+  payMethod: 'USD',
+};
+
+function render(){ App.render(); }
+const App = {
+  root: document.getElementById('app'),
+
+  render(){
+    if(state.loading){
+      this.root.innerHTML = `<div class="loading">Ascending…</div>`;
+      return;
+    }
+    if(state.showSplash){
+      this.root.innerHTML = this.renderSplash();
+      this.attachSplash();
+      return;
+    }
+    let body = '';
+    if(!storageAvailable()){
+      body += `<div class="app"><div class="error-note" style="margin:16px 0;">
+        <b>Storage diagnostic:</b> ${esc(diagnostic.detail || 'Not yet checked.')}<br>
+        Accounts, orders, and catalog changes will not save until this is resolved.
+      </div></div>`;
+    }
+    if(!state.user){
+      body += `<div class="app">${this.renderAuth()}</div>`;
+    } else if(state.view === 'catalog'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderCatalog()}${this.renderCartBar()}</div>`;
+    } else if(state.view === 'orders'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderOrders()}</div>`;
+    } else if(state.view === 'reviews'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderReviews()}</div>`;
+    } else if(state.view === 'credits'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderCredits()}</div>`;
+    } else if(state.view === 'wheel'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderWheel()}</div>`;
+    } else if(state.view === 'packs'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderPacks()}</div>`;
+    } else if(state.view === 'chat'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderChat()}</div>`;
+    } else if(state.view === 'admin'){
+      body += `<div class="app view-fade">${this.renderTopbar()}${this.renderAdmin()}</div>`;
+    }
+    this.root.innerHTML = body + (state.cartOpen ? this.renderCartModal() : '') + (state.inspectingUser ? this.renderInspectModal() : '') + (state.showBuySpinsModal ? this.renderBuySpinsModal() : '') + (state.showWalletModal ? this.renderWalletModal() : '');
+    this.attach();
+    if(state.view==='chat') this.scrollChatToBottom();
+  },
+
+  renderSplash(){
+    return `
+    <div class="splash" id="splash-el">
+      <div class="splash-rays"></div>
+      <div class="splash-cloud left"></div>
+      <div class="splash-cloud right"></div>
+      <div class="splash-content">
+        <div class="splash-title">ASCEND MM2</div>
+        <div class="splash-sub">Cheapest items out of anywhere</div>
+        <div class="splash-hint">click anywhere to continue</div>
+      </div>
+    </div>`;
+  },
+
+  attachSplash(){
+    const el = document.getElementById('splash-el');
+    const done = ()=>{ state.showSplash=false; render(); };
+    if(el) el.addEventListener('click', done);
+    setTimeout(done, 3200);
+  },
+
+  renderTopbar(){
+    const cartCount = Object.values(state.cart).reduce((a,b)=>a+b,0);
+    const roleTag = state.user.isOwner ? `<span class="owner-tag">✦ ASCEND</span>` : (state.user.isAdmin ? `<span class="admin-tag">ADMIN</span>` : '');
+    const curTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark">A</div>
+        <div>
+          <div class="title">Ascend MM2</div>
+          <div class="subtitle">Cheapest items out of anywhere</div>
+        </div>
+      </div>
+      <div class="nav">
+        <button data-nav="catalog" class="${state.view==='catalog'?'active':''}">Catalog</button>
+        <button data-nav="packs" class="${state.view==='packs'?'active':''}">Random Godlys</button>
+        <button data-nav="orders" class="${state.view==='orders'?'active':''}">My Orders</button>
+        <button data-nav="reviews" class="${state.view==='reviews'?'active':''}">Reviews</button>
+        <button data-nav="credits" class="${state.view==='credits'?'active':''}">Credits</button>
+        <button data-nav="wheel" class="${state.view==='wheel'?'active':''}">Mystery Wheel</button>
+        <button data-nav="chat" class="${state.view==='chat'?'active':''}">Chat</button>
+        ${state.user.isAdmin ? `<button data-nav="admin" class="${state.view==='admin'?'active':''}">Admin</button>` : ''}
+        ${state.view==='catalog' && cartCount>0 ? `<button data-open-cart="1">Cart (<span class="badge">${cartCount}</span>)</button>` : ''}
+      </div>
+      <div class="user-chip">
+        <div class="wallet-chip ${state.walletDelta ? 'wallet-pulse' : ''}" data-open-wallet="1" title="Wallet">
+          <span>👛</span><span class="amt">$${Number(state.user.walletBalance||0).toFixed(2)}</span>
+          ${state.walletDelta ? `<span class="wallet-pop">+$${Number(state.walletDelta).toFixed(2)}</span>` : ''}
+          <button class="wallet-plus" data-open-wallet="1" title="Add funds" type="button">+</button>
+        </div>
+        <button class="theme-toggle" data-toggle-theme="1" title="Toggle light/dark">${curTheme==='dark'?'☀️':'🌙'}</button>
+        <span><b>${esc(state.user.username)}</b>${roleTag}</span>
+        <button data-logout="1">Log out</button>
+      </div>
+    </div>`;
+  },
+
+  renderAuth(){
+    return `
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button data-authtab="login" class="${state.authTab==='login'?'active':''}">Log In</button>
+          <button data-authtab="register" class="${state.authTab==='register'?'active':''}">Register</button>
+        </div>
+        <form id="auth-form">
+          <div class="field">
+            <label>Username</label>
+            <input type="text" id="auth-username" autocomplete="username" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="auth-password" autocomplete="${state.authTab==='login'?'current-password':'new-password'}" required>
+          </div>
+          ${state.authTab==='register' ? `
+          <div class="field">
+            <label>Affiliate Code (optional)</label>
+            <input type="text" id="auth-affiliate" placeholder="Got a code from a friend?">
+          </div>` : ''}
+          <button class="btn" type="submit" style="width:100%">${state.authTab==='login'?'Log In':'Create Account'}</button>
+          ${state.authError ? `<div class="error-note">${esc(state.authError)}</div>` : ''}
+          ${state.authTab==='register' ? `<div class="info-note">The first account ever created becomes an admin automatically. Every account gets its own affiliate code — share it, and you'll both get $${REFERRAL_BONUS.toFixed(2)} when a friend signs up with it.</div>` : ''}
+        </form>
+      </div>
+    </div>`;
+  },
+
+  renderCatalog(){
+    return `
+    <h2 class="section-title">Catalog</h2>
+    <div class="section-sub">Browse the collection. Add items to your cart, then purchase when ready.</div>
+    <div class="catalog-grid">
+      ${state.catalog.map(item=>this.itemCard(item)).join('')}
+    </div>
+    <div style="height:70px"></div>
+    `;
+  },
+
+  itemCard(item){
+    const qty = state.cart[item.id] || 0;
+    const pending = state.pendingQty[item.id] || 1;
+    const stockLabel = item.stock === 0 ? 'OUT OF STOCK' : `IN STOCK: ${item.stock}`;
+    const stockClass = item.stock === 0 ? 'none' : (item.stock <= 2 ? 'low' : '');
+    const viewers = state.viewCounts[item.id] || 0;
+    const carts = state.cartCounts[item.id] || 0;
+    return `
+    <div class="item-card" data-item-hover="${item.id}">
+      <div class="item-media">
+        ${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.name)}">` : `<span>${item.emoji || '🔪'}</span>`}
+        <div class="stock-tape ${stockClass}">${stockLabel}</div>
+      </div>
+      <div class="item-body">
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-social">
+          ${viewers>0 ? `<span>👁 ${viewers} looking</span>` : ''}
+          ${carts>0 ? `<span class="cart-flag">🛒 ${carts} in carts</span>` : ''}
+        </div>
+        <div class="item-price-row">
+          <div class="item-price">$${item.price}</div>
+        </div>
+        ${qty>0 ? `<div class="info-note" style="margin:0;">In your cart: ${qty}</div>` : ''}
+        <div class="qty-row">
+          <button data-pending-dec="${item.id}" ${pending<=1?'disabled':''}>−</button>
+          <span>${pending}</span>
+          <button data-pending-inc="${item.id}" ${pending>=item.stock?'disabled':''}>+</button>
+        </div>
+        <button class="btn add-btn" data-add="${item.id}" ${item.stock<=0?'disabled':''}>Add to Cart</button>
+      </div>
+    </div>`;
+  },
+
+  renderCartBar(){
+    const items = Object.entries(state.cart).filter(([id,qty])=>qty>0);
+    if(items.length===0) return '';
+    const total = items.reduce((s,[id,qty])=>{
+      const item = state.catalog.find(i=>String(i.id)===String(id));
+      return s + (item ? item.price*qty : 0);
+    }, 0);
+    return `
+    <div class="cart-bar">
+      <div class="info"><b>${items.length}</b> item type(s) · total <b>$${total}</b></div>
+      <button class="btn" data-open-cart="1">Review Cart</button>
+    </div>`;
+  },
+
+  renderWalletModal(){
+    const u = state.user;
+    return `
+    <div class="modal-overlay" data-close-wallet="1">
+      <div class="modal" data-stop="1">
+        <h3>👛 Your Wallet</h3>
+        <div class="cart-total" style="margin-top:-6px;"><span>Balance</span><span>$${Number(u.walletBalance||0).toFixed(2)}</span></div>
+
+        <div style="margin-top:18px;">
+          <div style="font-family:'Cinzel';font-size:13px;color:var(--gold-deep);margin-bottom:8px;">Add Funds</div>
+          ${!state.walletMethod ? `
+            <div class="wallet-method-btns">
+              <button class="btn secondary" data-choose-wallet-method="apple_pay"> Apple Pay</button>
+              <button class="btn secondary" data-choose-wallet-method="venmo"> Venmo</button>
+            </div>
+            <div class="section-sub" style="margin-top:-6px;">Choose how you'd like to send funds.</div>
+          ` : `
+            <div class="field">
+              <label>Amount (USD)</label>
+              <input type="number" id="wallet-amount-input" min="0.01" step="0.01" placeholder="10.00" value="${esc(state.walletAmount)}">
+            </div>
+            ${state.walletError ? `<div class="error-note">${esc(state.walletError)}</div>` : ''}
+            <div class="info-note">
+              Send your payment via ${state.walletMethod==='venmo' ? 'Venmo' : 'Apple Pay'} to the Ascend MM2 owner,
+              then submit this request. We'll generate a code — once we confirm the payment arrived, an admin approves
+              it and the funds land in your wallet.
+            </div>
+            <div class="modal-actions">
+              <button class="btn secondary" data-cancel-wallet-method="1" style="flex:1">Back</button>
+              <button class="btn" data-submit-wallet-topup="1" style="flex:1">Submit Request</button>
+            </div>
+          `}
+          ${state.lastWalletCode ? `
+          <div class="order-code-box" style="margin-top:16px;">
+            <div style="font-family:'Cinzel';color:var(--gold-deep);font-size:13px;">YOUR TOP-UP CODE</div>
+            <div class="code">${esc(state.lastWalletCode)}</div>
+            <div style="font-size:12px;color:var(--ink-dim);">Include this code in your payment note so we can match it to your account.</div>
+          </div>` : ''}
+        </div>
+
+        <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:16px;">
+          <div style="font-family:'Cinzel';font-size:13px;color:var(--gold-deep);margin-bottom:8px;">Your Affiliate Code</div>
+          <div class="affiliate-box">
+            <span class="code">${esc(u.affiliateCode||'—')}</span>
+            <button class="mini-btn" data-copy-affiliate="1" type="button">Copy</button>
+          </div>
+          <div class="section-sub" style="margin:0;">Share your code — when someone signs up with it, you both get $${REFERRAL_BONUS.toFixed(2)} added to your wallet.</div>
+        </div>
+
+        <div class="modal-actions" style="margin-top:20px;">
+          <button class="btn secondary" data-close-wallet="1" style="flex:1">Close</button>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  renderCartModal(){
+    const items = Object.entries(state.cart).filter(([id,qty])=>qty>0).map(([id,qty])=>{
+      const item = state.catalog.find(i=>String(i.id)===String(id));
+      return item ? {...item, qty} : null;
+    }).filter(Boolean);
+    const subtotal = items.reduce((s,i)=>s+i.price*i.qty,0);
+    const discount = computeDiscount(state.appliedPromo, subtotal);
+    const total = subtotal - discount;
+    return `
+    <div class="modal-overlay" data-close-overlay="1">
+      <div class="modal" data-stop="1">
+        <h3>Your Cart</h3>
+        ${items.length===0 ? `<div class="empty-state">Your cart is empty.</div>` : items.map(i=>`
+          <div class="cart-line">
+            <span>${esc(i.name)} × ${i.qty}</span>
+            <span>$${i.price*i.qty} <button data-remove="${i.id}">remove</button></span>
+          </div>`).join('')}
+        ${items.length>0 ? `
+        <div style="margin-top:14px;">
+          <div class="field" style="margin-bottom:8px;">
+            <label>Promo Code</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="promo-input" value="${esc(state.promoInput)}" placeholder="Enter code" style="flex:1;text-transform:uppercase;" ${state.appliedPromo?'disabled':''}>
+              ${state.appliedPromo ? `<button class="mini-btn danger" data-remove-promo="1">Remove</button>` : `<button class="btn secondary" data-apply-promo="1">Apply</button>`}
+            </div>
+          </div>
+          ${state.promoError ? `<div class="error-note">${esc(state.promoError)}</div>` : ''}
+          ${state.appliedPromo ? `<div class="info-note">Code <b>${esc(state.appliedPromo.code)}</b> applied — ${state.appliedPromo.discount_type==='percent' ? state.appliedPromo.discount_value+'% off' : '$'+state.appliedPromo.discount_value+' off'}</div>` : ''}
+        </div>
+        <div class="cart-total"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+        ${discount>0 ? `<div class="cart-total" style="font-size:13px;color:var(--success);"><span>Discount</span><span>-$${discount.toFixed(2)}</span></div>` : ''}
+        <div class="cart-total"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+        <div class="field" style="margin-top:14px;">
+          <label>Pay With</label>
+          <div class="pay-method-row">
+            <label class="${state.payMethod==='USD'?'checked':''}">
+              <input type="radio" name="pay-method" value="USD" ${state.payMethod==='USD'?'checked':''} data-pay-method="USD"> USD ($${total.toFixed(2)})
+            </label>
+            <label class="${state.payMethod==='ROBUX'?'checked':''}">
+              <input type="radio" name="pay-method" value="ROBUX" ${state.payMethod==='ROBUX'?'checked':''} data-pay-method="ROBUX"> Robux (${Math.round(total*(state.robuxRate||100))} R$)
+            </label>
+          </div>
+        </div>
+        ` : ''}
+        <div class="modal-actions">
+          <button class="btn secondary" data-close-modal="1" style="flex:1">Keep Browsing</button>
+          ${items.length>0 ? `<button class="btn" data-file-order="1" style="flex:1">Purchase</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  },
+
+  renderOrders(){
+    return `
+    <h2 class="section-title">My Orders</h2>
+    <div class="section-sub">Each purchase gets an order number and a 10-character code. Open a ticket on Discord and give us your code to finalize it.</div>
+    ${state.lastOrderCode ? `
+      <div class="order-code-box">
+        <div style="font-family:'Cinzel';color:var(--gold-deep);font-size:13px;">YOUR ORDER CODE</div>
+        <div class="code">${esc(state.lastOrderCode)}</div>
+        <div style="font-size:12px;color:var(--ink-dim);">Open a Discord ticket and send us this code to finalize your order.</div>
+      </div>` : ''}
+    ${state.myOrders.length===0 ? `<div class="empty-state">No orders yet. Head to the Catalog or spin the Mystery Wheel.</div>` :
+    state.myOrders.map(o=>`
+      <div class="order-card">
+        <div class="order-left">
+          <div class="case-no">Order #${orderNo(o.id)}</div>
+          <div class="meta">Placed ${new Date(o.created_at).toLocaleString()}</div>
+          <div class="order-items">
+            ${o.items.map(i=>`<div>${esc(i.name)} × ${i.qty} — $${i.price*i.qty}</div>`).join('')}
+          </div>
+          <div class="order-total">Total: $${o.total}</div>
+          ${o.order_code ? `<div class="order-code-tag">Code: ${esc(o.order_code)}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <div class="status-pill ${o.status}">${o.status}</div>
+          ${o.status==='CANCELLED' ? `<button class="mini-btn danger" data-delete-order="${o.id}">Delete</button>` : ''}
+        </div>
+      </div>`).join('')}
+    `;
+  },
+
+  renderReviews(){
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5-n);
+    return `
+    <h2 class="section-title">Reviews</h2>
+    <div class="section-sub">Words from buyers whose orders have been fulfilled.</div>
+    ${state.reviewEligible ? `
+      <div class="admin-form" style="margin-bottom:24px;">
+        <h3 style="margin-top:0">Leave a Review</h3>
+        <div class="field">
+          <label>Rating</label>
+          <div id="star-picker" style="font-size:24px;letter-spacing:4px;cursor:pointer;color:var(--gold);">
+            ${[1,2,3,4,5].map(n=>`<span data-star="${n}" style="opacity:${n<=state.reviewDraftRating?'1':'0.3'}">★</span>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>Comment</label>
+          <textarea id="review-comment" rows="3" placeholder="How was your trade experience?"></textarea>
+        </div>
+        ${state.reviewError ? `<div class="error-note">${esc(state.reviewError)}</div>` : ''}
+        <button class="btn" data-submit-review="1" style="margin-top:10px;">Submit Review</button>
+      </div>
+    ` : `<div class="info-note" style="margin-bottom:20px;">Only buyers with at least one fulfilled order can leave a review.</div>`}
+    ${state.reviews.length===0 ? `<div class="empty-state">No reviews yet.</div>` : state.reviews.map(r=>`
+      <div class="order-card">
+        <div class="order-left">
+          <div class="case-no" style="font-size:16px;">${esc(r.username)}</div>
+          <div class="meta">${new Date(r.created_at).toLocaleString()}</div>
+          <div style="color:var(--gold);font-size:18px;margin-top:6px;">${stars(r.rating)}</div>
+          <div style="margin-top:8px;font-size:13px;color:var(--ink-dim);">${esc(r.comment)}</div>
+        </div>
+      </div>`).join('')}
+    `;
+  },
+
+  renderCredits(){
+    const groups = [
+      { label:'Owner', icon:'👑', people:[
+        { name:'Ascend' },
+      ]},
+      { label:'Mods', icon:'🛡️', people:[
+        { name:'Skibi840' },
+        { name:'Jamal Smith' },
+        { name:'Kebob', note:'(not really)' },
+      ]},
+      { label:'Helpers', icon:'✨', people:[
+        { name:'Niko', note:'for some awesome ideas!' },
+      ]},
+    ];
+    return `
+    <h2 class="section-title">Credits</h2>
+    <div class="section-sub">A special thanks to...</div>
+    <div style="display:flex;flex-direction:column;gap:22px;max-width:560px;">
+      ${groups.map(g=>`
+        <div class="card" style="padding:22px 24px;">
+          <div style="font-family:'Cinzel';font-size:15px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-deep);display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <span style="font-size:18px;">${g.icon}</span>${esc(g.label)}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${g.people.map(p=>`
+              <div style="display:flex;align-items:baseline;gap:8px;">
+                <span style="color:var(--gold);font-size:14px;">★</span>
+                <span style="font-family:'Cinzel';font-size:14.5px;color:var(--ink);">${esc(p.name)}</span>
+                ${p.note ? `<span style="font-size:12px;color:var(--ink-dim);">${esc(p.note)}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    `;
+  },
+
+  renderWheel(){
+    const balance = state.user.spinBalance || 0;
+    if(state.wheelItems.length === 0){
+      return `
+      <h2 class="section-title">Mystery Wheel</h2>
+      <div class="section-sub">Spend a key, spin, and take home a Godly.</div>
+      <div class="empty-state">No items are configured for the wheel right now. Check back soon.</div>`;
+    }
+    return `
+    <h2 class="section-title">Mystery Wheel</h2>
+    <div class="section-sub">Each spin costs 1 key. Buy keys through Discord, and we'll activate them for you.</div>
+    <div class="spin-balance-chip">🔑 You have ${balance} spin${balance===1?'':'s'}</div>
+    <div style="position:relative;max-width:560px;margin:20px auto;">
+      <div class="wheel-pointer" style="position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:14px solid var(--gold-deep);z-index:5;"></div>
+      <div id="wheel-viewport" style="overflow:hidden;border:2px solid var(--border);border-radius:12px;background:var(--cloud);height:150px;position:relative;">
+        <div id="wheel-reel" style="display:flex;position:absolute;left:0;top:0;height:100%;will-change:transform;">
+          ${state.wheelItems.map(item=>this.wheelCard(item)).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn" id="spin-btn" data-spin="1" ${state.spinning?'disabled':''}>${state.spinning ? 'Spinning…' : (balance>0 ? 'Spin the Wheel' : 'Get Spins')}</button>
+    </div>
+    ${state.spinResult ? `
+      <div class="order-card win-glow" style="max-width:400px;margin:24px auto 0;justify-content:center;">
+        <div class="order-left" style="text-align:center;width:100%;">
+          <div class="meta">RESULT</div>
+          <div class="case-no">${esc(state.spinResult.name)}</div>
+          <div class="order-total">Check your order code under My Orders.</div>
+        </div>
+      </div>` : ''}
+    `;
+  },
+
+  renderBuySpinsModal(){
+    const base = state.wheelPrice || 1;
+    const tiers = [
+      { spins:1,  mult:1 },
+      { spins:3,  mult:0.9 },
+      { spins:5,  mult:0.8 },
+      { spins:10, mult:0.7 },
+      { spins:25, mult:0.6 },
+    ];
+    return `
+    <div class="modal-overlay" data-close-buyspins="1">
+      <div class="modal" data-stop="1">
+        <h3>🔑 Get Spins</h3>
+        <div class="section-sub" style="margin-top:-8px;">Purchase keys through our Discord, then we'll activate them for your account. Prices get cheaper the more you buy!</div>
+        ${tiers.map(t=>{
+          const total = (base * t.spins * t.mult);
+          const each = total / t.spins;
+          return `
+          <div class="cart-line">
+            <span>${t.spins} spin${t.spins===1?'':'s'} <span style="color:var(--ink-dim);">($${each.toFixed(2)} each)</span></span>
+            <span style="color:var(--gold-deep);font-family:'JetBrains Mono';font-weight:600;">$${total.toFixed(2)}</span>
+          </div>`;
+        }).join('')}
+        <div class="info-note" style="margin-top:14px;">Open a Discord ticket, tell us how many spins you'd like, and complete payment there. We'll give you a key — an admin activates it and your spins appear here instantly.</div>
+        <div class="modal-actions">
+          <button class="btn secondary" data-close-buyspins="1" style="flex:1">Got it</button>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  renderPacks(){
+    return `
+    <h2 class="section-title">🔥 Random Godly Packs 🎲</h2>
+    <div class="section-sub">Low to high price. Get random MM2 Godlies — bigger packs mean better value. Stock updates after every order.</div>
+    <div class="spin-balance-chip">📦 ${state.randomGodlyStock} Available</div>
+    <div class="pack-grid">
+      ${GODLY_PACKS.map(p=>this.packCard(p)).join('')}
+    </div>
+    <div class="admin-form" style="margin-top:30px;">
+      <h3 style="margin-top:0;">🎁 Possible Drops</h3>
+      <div style="font-size:13px;color:var(--ink-dim);line-height:1.9;">
+        🔪 Godly Knives &nbsp;·&nbsp; 🔫 Godly Guns &nbsp;·&nbsp; 🌈 Chroma Godlies &nbsp;·&nbsp; ⚔️ Ancient Weapons &nbsp;·&nbsp; ❄️ Seasonal Items
+      </div>
+    </div>
+    `;
+  },
+
+  packCard(p){
+    const icon = p.qty>=100 ? '👑' : (p.qty>=20 ? '💎' : '⚔️');
+    const disabled = state.randomGodlyStock < p.qty;
+    return `
+    <div class="pack-card ${p.ribbon?'ribbon':''}" ${p.ribbon?`data-ribbon="${esc(p.ribbon)}"`:''}>
+      <div class="pack-badge">
+        <div class="pack-badge-circle">
+          <span class="n">${p.qty}</span>
+          <span class="icon">${icon}</span>
+        </div>
+      </div>
+      <div class="pack-body">
+        <div class="pack-title">${p.qty} Godl${p.qty===1?'y':'ies'}</div>
+        <div class="pack-worth">💎 Worth ≈ $${p.worth.toFixed(2)}+</div>
+        <div class="pack-price-row">
+          <span class="pack-was">$${p.was.toFixed(2)}</span>
+          <span class="pack-now">$${p.now.toFixed(2)}</span>
+        </div>
+        ${p.each ? `<div class="pack-each">🔥 $${p.each.toFixed(2)} each</div>` : ''}
+        <button class="btn add-btn" style="margin-top:8px;" data-buy-pack="${p.qty}" ${disabled?'disabled':''}>${disabled?'Out of Stock':'Purchase'}</button>
+      </div>
+    </div>`;
+  },
+
+  wheelCard(item){
+    const colors = ['#c9a24a','#7fb2d9','#4f8f5f','#b3432f','#9b7fd9','#d97aa0','#3fa9a9','#d99a3f'];
+    const seed = String(item.id).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    const color = colors[seed % colors.length];
+    return `
+    <div class="wheel-slot" style="flex:0 0 140px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border);background:linear-gradient(180deg, ${color}26, var(--cloud2) 65%);border-top:3px solid ${color};box-shadow:inset 0 0 20px ${color}30;">
+      <div style="font-size:36px;filter:drop-shadow(0 0 7px ${color}90);">${item.image ? `<img src="${esc(item.image)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">` : (item.emoji||'🔪')}</div>
+      <div style="font-family:'Cinzel';font-size:12px;margin-top:6px;text-align:center;padding:0 6px;">${esc(item.name)}</div>
+      <div style="font-family:'JetBrains Mono';color:${color};font-size:12px;font-weight:600;">$${item.price}</div>
+    </div>`;
+  },
+
+  renderChat(){
+    const banned = state.user.chatBanned;
+    return `
+    <h2 class="section-title">Global Chat</h2>
+    <div class="section-sub">Chat with the whole community. Be respectful — foul language and spam get filtered.</div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-messages-el">
+        ${this.chatMessagesHTML()}
+      </div>
+      ${banned ? `<div class="error-note" style="margin:12px;">You have been banned from the global chat.</div>` : `
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Say something…" maxlength="400">
+        <button class="btn" data-send-chat="1">Send</button>
+      </div>
+      ${state.chatError ? `<div class="error-note" style="margin:0 12px 12px;">${esc(state.chatError)}</div>` : ''}
+      `}
+    </div>
+    `;
+  },
+
+  chatMessagesHTML(){
+    if(state.chatMessages.length===0) return `<div class="empty-state">No messages yet. Say hello!</div>`;
+    return state.chatMessages.map(m=>{
+      const sender = state.allUsersMap ? state.allUsersMap[m.username] : null;
+      let tag = '';
+      if(sender && sender.is_owner) tag = `<span class="owner-tag">✦ ASCEND</span>`;
+      else if(sender && sender.is_admin) tag = `<span class="admin-tag">ADMIN</span>`;
+      return `
+      <div class="chat-msg">
+        <div class="who">${esc(m.username)}${tag}<span class="when">${new Date(m.created_at).toLocaleTimeString()}</span>
+          ${state.user.isAdmin ? `<button class="mini-btn danger" style="margin-left:8px;padding:1px 6px;font-size:9px;" data-delete-chat="${m.id}">delete</button>` : ''}
+        </div>
+        <div>${esc(m.message)}</div>
+      </div>`;
+    }).join('');
+  },
+
+  scrollChatToBottom(){
+    const el = document.getElementById('chat-messages-el');
+    if(el) el.scrollTop = el.scrollHeight;
+  },
+
+  renderAdmin(){
+    return `
+    <h2 class="section-title">Admin</h2>
+    <div class="section-sub">Manage the catalog, review orders, manage staff, and moderate chat.</div>
+    <div class="admin-tabs">
+      <button data-admintab="orders" class="${state.adminTab==='orders'?'active':''}">Orders</button>
+      <button data-admintab="catalog" class="${state.adminTab==='catalog'?'active':''}">Catalog & Wheel</button>
+      <button data-admintab="keys" class="${state.adminTab==='keys'?'active':''}">Spin Keys</button>
+      <button data-admintab="packs" class="${state.adminTab==='packs'?'active':''}">Random Packs</button>
+      <button data-admintab="promo" class="${state.adminTab==='promo'?'active':''}">Promo Codes</button>
+      <button data-admintab="reviews" class="${state.adminTab==='reviews'?'active':''}">Reviews</button>
+      <button data-admintab="staff" class="${state.adminTab==='staff'?'active':''}">Staff & Users</button>
+      <button data-admintab="chatmod" class="${state.adminTab==='chatmod'?'active':''}">Chat Moderation</button>
+      <button data-admintab="payments" class="${state.adminTab==='payments'?'active':''}">Payments & Wallet</button>
+    </div>
+    ${state.adminTab==='orders' ? this.renderAdminOrders() : ''}
+    ${state.adminTab==='catalog' ? this.renderAdminCatalog() : ''}
+    ${state.adminTab==='keys' ? this.renderAdminKeys() : ''}
+    ${state.adminTab==='packs' ? this.renderAdminPacks() : ''}
+    ${state.adminTab==='promo' ? this.renderAdminPromo() : ''}
+    ${state.adminTab==='reviews' ? this.renderAdminReviews() : ''}
+    ${state.adminTab==='staff' ? this.renderAdminStaff() : ''}
+    ${state.adminTab==='chatmod' ? this.renderAdminChatMod() : ''}
+    ${state.adminTab==='payments' ? this.renderAdminPayments() : ''}
+    `;
+  },
+
+  renderAdminPromo(){
+    return `
+    <div class="admin-form" style="margin-bottom:18px;">
+      <h3 style="margin-top:0;">Create a Promo Code</h3>
+      <div class="row">
+        <div class="field"><label>Code</label><input id="new-promo-code" placeholder="e.g. WELCOME10" style="text-transform:uppercase;"></div>
+        <div class="field">
+          <label>Discount Type</label>
+          <select id="new-promo-type">
+            <option value="percent" ${state.newPromoType==='percent'?'selected':''}>Percent off (%)</option>
+            <option value="fixed" ${state.newPromoType==='fixed'?'selected':''}>Fixed amount off ($)</option>
+          </select>
+        </div>
+        <div class="field"><label>Discount Value</label><input id="new-promo-value" type="number" min="0" step="0.01" placeholder="e.g. 10"></div>
+        <div class="field"><label>Minimum Spend (optional)</label><input id="new-promo-min-spend" type="number" min="0" step="0.01" placeholder="e.g. 25"></div>
+      </div>
+      <button class="btn secondary" data-create-promo="1">Create Code</button>
+    </div>
+    ${state.promoCodes.length===0 ? `<div class="empty-state">No promo codes yet.</div>` : `
+    <table>
+      <thead><tr><th>Code</th><th>Discount</th><th>Min Spend</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${state.promoCodes.map(p=>`
+        <tr>
+          <td class="order-code-cell">${esc(p.code)}</td>
+          <td>${p.discount_type==='percent' ? p.discount_value+'% off' : '$'+p.discount_value+' off'}</td>
+          <td>${p.min_spend ? '$'+Number(p.min_spend).toFixed(2) : '—'}</td>
+          <td>${p.active ? '<span style="color:var(--success)">active</span>' : '<span style="color:var(--danger)">disabled</span>'}</td>
+          <td>
+            ${p.active ? `<button class="mini-btn danger" data-disable-promo="${esc(p.code)}">Disable</button>` : `<button class="mini-btn" data-enable-promo="${esc(p.code)}">Enable</button>`}
+            <button class="mini-btn danger" data-delete-promo="${esc(p.code)}">Delete</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`}
+    `;
+  },
+
+  renderAdminReviews(){
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5-n);
+    return `
+    <div class="admin-form" style="margin-bottom:18px;">
+      <h3 style="margin-top:0;">Post a Review</h3>
+      <div class="section-sub" style="margin-top:-6px;">Add a review on behalf of a buyer — set their name, the date, a star rating, and the comment.</div>
+      <div class="row">
+        <div class="field"><label>Name</label><input id="admin-review-username" placeholder="e.g. Buyer123"></div>
+        <div class="field"><label>Date</label><input id="admin-review-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="field">
+        <label>Rating</label>
+        <div id="admin-star-picker" style="font-size:24px;letter-spacing:4px;cursor:pointer;color:var(--gold);">
+          ${[1,2,3,4,5].map(n=>`<span data-admin-star="${n}" style="opacity:${n<=state.adminReviewRating?'1':'0.3'}">★</span>`).join('')}
+        </div>
+      </div>
+      <div class="field">
+        <label>Comment</label>
+        <textarea id="admin-review-comment" rows="3" placeholder="How was the trade experience?"></textarea>
+      </div>
+      ${state.adminReviewError ? `<div class="error-note">${esc(state.adminReviewError)}</div>` : ''}
+      <button class="btn" data-post-admin-review="1" style="margin-top:10px;">Post Review</button>
+    </div>
+    ${state.reviews.length===0 ? `<div class="empty-state">No reviews yet.</div>` : state.reviews.map(r=>`
+      <div class="order-card">
+        <div class="order-left">
+          <div class="case-no" style="font-size:16px;">${esc(r.username)}</div>
+          <div class="meta">${new Date(r.created_at).toLocaleString()}</div>
+          <div style="color:var(--gold);font-size:18px;margin-top:6px;">${stars(r.rating)}</div>
+          <div style="margin-top:8px;font-size:13px;color:var(--ink-dim);">${esc(r.comment)}</div>
+        </div>
+        <button class="mini-btn danger" data-delete-review="${r.id}">Delete</button>
+      </div>`).join('')}
+    `;
+  },
+
+  renderAdminKeys(){
+    const unused = state.spinKeys.filter(k=>k.status==='unused');
+    const activated = state.spinKeys.filter(k=>k.status==='activated');
+    return `
+    <div class="admin-form" style="margin-bottom:18px;">
+      <h3 style="margin-top:0;">Generate a Spin Key</h3>
+      <div class="section-sub" style="margin-top:-6px;">Create a key after a customer pays through Discord, then activate it for their username.</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="field" style="max-width:140px;margin-bottom:0;">
+          <label>Spins on key</label>
+          <input id="new-key-spins" type="number" min="1" value="${state.newKeySpins}">
+        </div>
+        <button class="btn secondary" data-generate-key="1">Generate Key</button>
+      </div>
+    </div>
+    <h3 style="color:var(--gold-deep);">Unused Keys</h3>
+    ${unused.length===0 ? `<div class="empty-state">No unused keys yet.</div>` : `
+    <table style="margin-bottom:24px;">
+      <thead><tr><th>Code</th><th>Spins</th><th>Activate for</th><th></th></tr></thead>
+      <tbody>
+        ${unused.map(k=>`
+        <tr>
+          <td class="order-code-cell">${esc(k.code)}</td>
+          <td>${k.spins}</td>
+          <td><input type="text" placeholder="username" id="activate-input-${esc(k.code)}" style="width:130px;background:var(--cloud2);border:1px solid var(--border-lt);border-radius:6px;padding:5px 8px;font-family:'Inter';font-size:12px;"></td>
+          <td><button class="mini-btn" data-activate-key="${esc(k.code)}">Activate</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`}
+    <h3 style="color:var(--gold-deep);">Activated Keys</h3>
+    ${activated.length===0 ? `<div class="empty-state">No keys activated yet.</div>` : `
+    <table>
+      <thead><tr><th>Code</th><th>Spins</th><th>Activated For</th><th>When</th></tr></thead>
+      <tbody>
+        ${activated.map(k=>`
+        <tr>
+          <td class="order-code-cell">${esc(k.code)}</td>
+          <td>${k.spins}</td>
+          <td>${esc(k.activated_username||'—')}</td>
+          <td>${k.activated_at ? new Date(k.activated_at).toLocaleString() : '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`}
+    `;
+  },
+
+  renderAdminPacks(){
+    return `
+    <div class="admin-form">
+      <h3 style="margin-top:0;">Random Godly Pack Stock</h3>
+      <div class="section-sub" style="margin-top:-6px;">This is the shared pool shown as "X Available" on the Random Godlys tab. It goes down automatically as packs are purchased.</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="field" style="max-width:160px;margin-bottom:0;">
+          <label>Stock remaining</label>
+          <input id="pack-stock-input" type="number" min="0" value="${state.randomGodlyStock}">
+        </div>
+        <button class="btn secondary" data-save-pack-stock="1">Save</button>
+      </div>
+      <div class="info-note" style="margin-top:14px;">Pack sizes and prices are fixed in the code to match your pricing sheet. Let me know if you ever want those editable from here too.</div>
+    </div>
+    `;
+  },
+
+  renderAdminOrders(){
+    if(state.allOrders.length===0) return `<div class="empty-state">No orders filed yet.</div>`;
+    return `
+    <table>
+      <thead><tr><th>Order</th><th>Code</th><th>User</th><th>Items</th><th>Total</th><th>Payment</th><th>Promo</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${state.allOrders.map(o=>`
+        <tr>
+          <td>#${orderNo(o.id)}</td>
+          <td class="order-code-cell">${esc(o.order_code||'—')}</td>
+          <td>${esc(o.username)}</td>
+          <td>${o.items.map(i=>esc(i.name)+' ×'+i.qty).join(', ')}</td>
+          <td>$${o.total}</td>
+          <td>${o.payment_method==='ROBUX' ? `${o.robux_amount||Math.round(o.total*100)} R$` : 'USD'}</td>
+          <td>${o.promo_code ? `${esc(o.promo_code)} (-$${Number(o.discount_amount||0).toFixed(2)})` : '—'}</td>
+          <td>
+            <select class="status-select" data-status-order="${o.id}">
+              ${['PENDING','PROCESSING','FULFILLED','CANCELLED'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </td>
+          <td>${o.status==='CANCELLED' ? `<button class="mini-btn danger" data-delete-order="${o.id}">Delete</button>` : ''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  },
+
+  renderAdminCatalog(){
+    const editing = state.editingItem;
+    const editingItem = editing && editing!=='new' ? state.catalog.find(i=>i.id===editing) : null;
+    const ranked = state.catalog.filter(i=>i.in_wheel).sort((a,b)=>(a.wheel_order||0)-(b.wheel_order||0));
+    return `
+    <div class="admin-form" style="margin-bottom:18px;">
+      <h3 style="margin-top:0">Mystery Wheel Settings</h3>
+      <div class="field" style="max-width:220px;">
+        <label>Spin Price (USD)</label>
+        <input id="wheel-price-input" type="number" min="0" value="${state.wheelPrice}">
+      </div>
+      <button class="btn secondary" data-save-wheel-price="1">Save Price</button>
+      <div class="section-sub" style="margin-top:16px;margin-bottom:6px;">
+        Wheel ranking — highest value at top, lowest at bottom. Each spin randomly samples a
+        few items from this list, but always awards whichever one lands lowest (bottom-most) among those picked.
+      </div>
+      ${ranked.length===0 ? `<div class="empty-state" style="padding:20px;">No items on the wheel yet. Add some using "In Wheel" below.</div>` : `
+      <table style="margin-top:6px;">
+        <thead><tr><th>Rank</th><th>Item</th><th>Price</th><th></th></tr></thead>
+        <tbody>
+          ${ranked.map((i,idx)=>`
+          <tr>
+            <td style="color:var(--ink-dim);">${idx+1}</td>
+            <td>${i.emoji||'🔪'} ${esc(i.name)}</td>
+            <td>$${i.price}</td>
+            <td>
+              <button class="mini-btn" data-move-wheel="${i.id}" data-dir="up" ${idx===0?'disabled':''}>▲</button>
+              <button class="mini-btn" data-move-wheel="${i.id}" data-dir="down" ${idx===ranked.length-1?'disabled':''}>▼</button>
+              <button class="mini-btn danger" data-toggle-wheel="${i.id}">Remove</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+    <div class="section-sub" style="margin-bottom:6px;">Full catalog — set the thumbnail by pasting an image link (e.g. from Google Images).</div>
+    <table>
+      <thead><tr><th>Item</th><th>Price</th><th>Stock</th><th>In Wheel</th><th></th></tr></thead>
+      <tbody>
+        ${state.catalog.map(i=>`
+        <tr>
+          <td>${i.emoji||'🔪'} ${esc(i.name)}</td>
+          <td>$${i.price}</td>
+          <td>${i.stock}</td>
+          <td><button class="mini-btn ${i.in_wheel?'':'secondary'}" data-toggle-wheel="${i.id}">${i.in_wheel?'Yes — remove':'No — add'}</button></td>
+          <td>
+            <button class="mini-btn" data-edit-item="${i.id}">Edit</button>
+            <button class="mini-btn danger" data-delete-item="${i.id}">Delete</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <button class="btn secondary" style="margin-top:14px" data-new-item="1">+ Add Item</button>
+    ${editing ? `
+    <div class="admin-form">
+      <h3 style="margin-top:0">${editing==='new' ? 'New Item' : 'Edit Item'}</h3>
+      <div class="row">
+        <div class="field"><label>Name</label><input id="f-name" value="${editingItem?esc(editingItem.name):''}"></div>
+        <div class="field"><label>Emoji / icon (fallback)</label><input id="f-emoji" value="${editingItem?esc(editingItem.emoji||''):''}" placeholder="🔪"></div>
+        <div class="field"><label>Price (USD)</label><input id="f-price" type="number" min="0" value="${editingItem?editingItem.price:''}"></div>
+        <div class="field"><label>Stock</label><input id="f-stock" type="number" min="0" value="${editingItem?editingItem.stock:''}"></div>
+      </div>
+      <div class="field"><label>Thumbnail — paste an image link (e.g. right-click an image on Google &rarr; Copy Image Address)</label><input id="f-image" value="${editingItem?esc(editingItem.image||''):''}" placeholder="https://..."></div>
+      <div class="modal-actions">
+        <button class="btn secondary" data-cancel-edit="1">Cancel</button>
+        <button class="btn" data-save-item="1">Save Item</button>
+      </div>
+    </div>` : ''}
+    `;
+  },
+
+  renderAdminStaff(){
+    return `
+    <table>
+      <thead><tr><th>Username</th><th>Role</th><th>Chat</th><th></th></tr></thead>
+      <tbody>
+        ${state.allUsers.map(u=>`
+        <tr>
+          <td>${esc(u.username)}</td>
+          <td>${u.is_owner ? '✦ ASCEND' : (u.is_admin ? 'ADMIN' : 'MEMBER')}</td>
+          <td>${u.chat_banned ? '<span style="color:var(--danger)">banned</span>' : 'ok'}</td>
+          <td>
+            <button class="mini-btn" data-view-inventory="${esc(u.username)}">View Orders</button>
+            ${u.username===state.user.username ? '' :
+              (u.is_owner ? '' : (u.is_admin ? `<button class="mini-btn danger" data-demote="${esc(u.username)}">Remove Admin</button>`
+                          : `<button class="mini-btn" data-promote="${esc(u.username)}">Make Admin</button>`))}
+            ${u.is_owner ? '' : (u.chat_banned ? `<button class="mini-btn" data-unban-chat="${esc(u.username)}">Unban Chat</button>` : `<button class="mini-btn danger" data-ban-chat="${esc(u.username)}">Ban from Chat</button>`)}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  },
+
+  renderAdminChatMod(){
+    return `
+    <div class="admin-form">
+      <h3 style="margin-top:0">Blocked Words</h3>
+      <div class="section-sub" style="margin-bottom:10px;">Messages containing these words (plus a built-in profanity list, and "ascend" for anyone but the Owner) are blocked automatically.</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="blocked-word-input" placeholder="add a word to block" style="flex:1;background:var(--cloud);border:1px solid var(--border-lt);padding:9px 12px;border-radius:8px;font-family:'Inter';">
+        <button class="btn secondary" data-add-blocked-word="1">Add</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${customBlockedWords.length===0 ? `<span style="color:var(--ink-dim);font-size:12.5px;">No custom words added.</span>` :
+          customBlockedWords.map(w=>`<span class="mini-btn danger" data-remove-blocked-word="${esc(w)}" style="cursor:pointer;">${esc(w)} ✕</span>`).join('')}
+      </div>
+    </div>
+    `;
+  },
+
+  renderAdminPayments(){
+    const pending = state.walletRequests.filter(r=>r.status==='pending');
+    const handled = state.walletRequests.filter(r=>r.status!=='pending');
+    return `
+    <div class="admin-form" style="margin-bottom:18px;">
+      <h3 style="margin-top:0">Robux Exchange Rate</h3>
+      <div class="section-sub" style="margin-top:-8px;">How many Robux equal $1 USD. Used to show a Robux total when a customer pays with Robux at checkout.</div>
+      <div class="field" style="max-width:220px;">
+        <label>Robux per $1</label>
+        <input id="robux-rate-input" type="number" min="1" value="${state.robuxRate}">
+      </div>
+      <button class="btn secondary" data-save-robux-rate="1">Save Rate</button>
+    </div>
+    <div class="section-sub" style="margin-bottom:6px;">Pending wallet top-up requests — confirm the Apple Pay / Venmo payment arrived before approving.</div>
+    ${pending.length===0 ? `<div class="empty-state">No pending requests.</div>` : `
+    <table style="margin-bottom:22px;">
+      <thead><tr><th>User</th><th>Method</th><th>Amount</th><th>Code</th><th>When</th><th></th></tr></thead>
+      <tbody>
+        ${pending.map(r=>`
+        <tr>
+          <td>${esc(r.username)}</td>
+          <td>${r.method==='venmo' ? 'Venmo' : 'Apple Pay'}</td>
+          <td>$${Number(r.amount).toFixed(2)}</td>
+          <td class="order-code-cell">${esc(r.code)}</td>
+          <td>${new Date(r.created_at).toLocaleString()}</td>
+          <td>
+            <button class="mini-btn" data-approve-wallet="${r.id}">Approve</button>
+            <button class="mini-btn danger" data-reject-wallet="${r.id}">Reject</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`}
+    ${handled.length>0 ? `
+    <div class="section-sub" style="margin-bottom:6px;">Handled requests</div>
+    <table>
+      <thead><tr><th>User</th><th>Method</th><th>Amount</th><th>Code</th><th>Status</th></tr></thead>
+      <tbody>
+        ${handled.map(r=>`
+        <tr>
+          <td>${esc(r.username)}</td>
+          <td>${r.method==='venmo' ? 'Venmo' : 'Apple Pay'}</td>
+          <td>$${Number(r.amount).toFixed(2)}</td>
+          <td class="order-code-cell">${esc(r.code)}</td>
+          <td>${r.status==='approved' ? `<span style="color:var(--success)">approved</span>` : `<span style="color:var(--danger)">rejected</span>`}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : ''}
+    `;
+  },
+
+  renderInspectModal(){
+    return `
+    <div class="modal-overlay" data-close-inspect="1">
+      <div class="modal" data-stop="1" style="max-width:560px;">
+        <h3>${esc(state.inspectingUser)}'s Orders</h3>
+        ${state.inspectingOrders.length===0 ? `<div class="empty-state">No orders from this user yet.</div>` :
+        state.inspectingOrders.map(o=>`
+          <div class="order-card" style="margin-bottom:10px;">
+            <div class="order-left">
+              <div class="case-no" style="font-size:15px;">Order #${orderNo(o.id)}</div>
+              <div class="meta">${new Date(o.created_at).toLocaleString()} · Code: ${esc(o.order_code||'—')}</div>
+              <div class="order-items">${o.items.map(i=>`<div>${esc(i.name)} × ${i.qty}</div>`).join('')}</div>
+              <div class="order-total">Total: $${o.total}</div>
+            </div>
+            <div class="status-pill ${o.status}">${o.status}</div>
+          </div>`).join('')}
+        <div class="modal-actions">
+          <button class="btn secondary" data-close-inspect="1" style="flex:1">Close</button>
+        </div>
+      </div>
+    </div>`;
+  },
+};
+Object.assign(App, {
+  attach(){
+    const $ = sel => this.root.querySelector(sel);
+    const $$ = sel => Array.from(this.root.querySelectorAll(sel));
+
+    // auth
+    const authForm = $('#auth-form');
+    if(authForm){
+      authForm.addEventListener('submit', async e=>{
+        e.preventDefault();
+        const username = $('#auth-username').value;
+        const password = $('#auth-password').value;
+        state.authError = '';
+        let err;
+        if(state.authTab==='login') err = await loginUser(username, password);
+        else {
+          const affInput = $('#auth-affiliate');
+          err = await registerUser(username, password, affInput ? affInput.value.trim() : '');
+        }
+        if(err){ state.authError = err; render(); return; }
+        state.loading = true; render();
+        await Promise.all([loadCatalog(), loadMyOrders(), loadBlockedWords()]);
+        if(state.user.isAdmin){ await Promise.all([loadAllOrders(), loadAllUsers()]); }
+        state.loading = false;
+        state.showSplash = true;
+        render();
+      });
+    }
+    $$('[data-authtab]').forEach(b=>b.addEventListener('click', ()=>{
+      state.authTab = b.dataset.authtab; state.authError=''; render();
+    }));
+
+    // nav
+    $$('[data-nav]').forEach(b=>b.addEventListener('click', async ()=>{
+      state.view = b.dataset.nav;
+      state.spinResult = null;
+      SFX.click();
+      if(state.view==='orders') await loadMyOrders();
+      if(state.view==='catalog'){ await Promise.all([loadCartCounts(), loadPresenceCounts()]); }
+      if(state.view==='reviews'){ await Promise.all([loadReviews(), checkReviewEligibility()]); }
+      if(state.view==='wheel'){ await Promise.all([loadWheelConfig(), refreshSpinBalance()]); }
+      if(state.view==='packs'){ await loadRandomGodlyStock(); }
+      if(state.view==='chat'){ await Promise.all([loadChatMessages(), loadUserRolesMap()]); }
+      if(state.view==='admin'){ await Promise.all([loadAllOrders(), loadAllUsers(), loadWheelConfigAdmin(), loadBlockedWords(), loadSpinKeys(), loadRandomGodlyStock(), loadPromoCodes(), loadReviews(), loadWalletRequests(), loadRobuxRate()]); }
+      render();
+    }));
+    const logoutBtn = $('[data-logout]');
+    if(logoutBtn) logoutBtn.addEventListener('click', logout);
+    const themeBtn = $('[data-toggle-theme]');
+    if(themeBtn) themeBtn.addEventListener('click', ()=>{ toggleTheme(); SFX.click(); render(); });
+
+    // cart
+    $$('[data-open-cart]').forEach(b=>b.addEventListener('click', ()=>{ state.cartOpen=true; SFX.click(); render(); }));
+    const overlay = $('[data-close-overlay]');
+    if(overlay) overlay.addEventListener('click', e=>{ if(e.target===overlay){ state.cartOpen=false; render(); } });
+    const inspectOverlay = $('[data-close-inspect]');
+    if(inspectOverlay) inspectOverlay.addEventListener('click', e=>{
+      if(e.target===inspectOverlay || e.target.dataset.closeInspect){ state.inspectingUser=null; render(); }
+    });
+    const buySpinsOverlay = $('[data-close-buyspins]');
+    if(buySpinsOverlay) buySpinsOverlay.addEventListener('click', e=>{
+      if(e.target===buySpinsOverlay || e.target.dataset.closeBuyspins){ state.showBuySpinsModal=false; render(); }
+    });
+
+    // wallet
+    $$('[data-open-wallet]').forEach(b=>b.addEventListener('click', ()=>{
+      state.showWalletModal = true; state.walletMethod = null; state.walletAmount = '';
+      state.walletError = ''; state.lastWalletCode = null; render();
+    }));
+    const walletOverlay = $('[data-close-wallet]');
+    if(walletOverlay) walletOverlay.addEventListener('click', e=>{
+      if(e.target===walletOverlay || e.target.dataset.closeWallet){
+        state.showWalletModal=false; state.walletMethod=null; state.lastWalletCode=null; render();
+      }
+    });
+    $$('[data-choose-wallet-method]').forEach(b=>b.addEventListener('click', ()=>{
+      state.walletMethod = b.dataset.chooseWalletMethod; state.walletError=''; render();
+    }));
+    const cancelWalletMethod = $('[data-cancel-wallet-method]');
+    if(cancelWalletMethod) cancelWalletMethod.addEventListener('click', ()=>{
+      state.walletMethod = null; state.walletError=''; render();
+    });
+    const submitWalletBtn = $('[data-submit-wallet-topup]');
+    if(submitWalletBtn) submitWalletBtn.addEventListener('click', async ()=>{
+      const amt = $('#wallet-amount-input').value;
+      state.walletAmount = amt;
+      submitWalletBtn.disabled = true;
+      const err = await createWalletTopupRequest(state.walletMethod, amt);
+      submitWalletBtn.disabled = false;
+      if(err){ state.walletError = err; render(); return; }
+      state.walletError = '';
+      state.walletMethod = null;
+      state.walletAmount = '';
+      toast('Top-up request submitted — an admin will confirm and credit your wallet.', 'success');
+      render();
+    });
+    $$('[data-copy-affiliate]').forEach(b=>b.addEventListener('click', ()=>{
+      const code = state.user.affiliateCode || '';
+      if(navigator.clipboard) navigator.clipboard.writeText(code).catch(()=>{});
+      toast('Affiliate code copied!', 'success');
+    }));
+    $$('[data-stop]').forEach(el=>el.addEventListener('click', e=>e.stopPropagation()));
+    const closeModalBtn = $('[data-close-modal]');
+    if(closeModalBtn) closeModalBtn.addEventListener('click', ()=>{ state.cartOpen=false; render(); });
+    $$('[data-remove]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = b.dataset.remove;
+      delete state.cart[id];
+      await syncCartItem(Number(id), 0);
+      render();
+    }));
+    const fileBtn = $('[data-file-order]');
+    if(fileBtn) fileBtn.addEventListener('click', async ()=>{
+      fileBtn.disabled=true; fileBtn.textContent='Filing…';
+      await placeOrder();
+      SFX.success(); fireConfetti(); toast('Order placed! Check My Orders for your code.', 'success');
+    });
+    const applyPromoBtn = $('[data-apply-promo]');
+    if(applyPromoBtn) applyPromoBtn.addEventListener('click', async ()=>{
+      const val = $('#promo-input').value;
+      state.promoInput = val;
+      const promo = await validatePromoCode(val);
+      if(!promo){ state.promoError = 'That code is invalid or no longer active.'; state.appliedPromo = null; SFX.error(); render(); return; }
+      const cartItems = Object.entries(state.cart).filter(([id,qty])=>qty>0).map(([id,qty])=>{
+        const item = state.catalog.find(i=>String(i.id)===String(id));
+        return item ? {...item, qty} : null;
+      }).filter(Boolean);
+      const cartSubtotal = cartItems.reduce((s,i)=>s+i.price*i.qty,0);
+      if(promo.min_spend && cartSubtotal < promo.min_spend){
+        state.promoError = `Spend at least $${Number(promo.min_spend).toFixed(2)} to use this code.`;
+        state.appliedPromo = null; SFX.error();
+      } else {
+        state.appliedPromo = promo; state.promoError = ''; toast(`Code ${promo.code} applied!`, 'success');
+      }
+      render();
+    });
+    const removePromoBtn = $('[data-remove-promo]');
+    if(removePromoBtn) removePromoBtn.addEventListener('click', ()=>{
+      state.appliedPromo = null; state.promoInput = ''; state.promoError = ''; render();
+    });
+    $$('[data-pay-method]').forEach(r=>r.addEventListener('change', ()=>{
+      state.payMethod = r.dataset.payMethod; render();
+    }));
+
+    // pending qty steppers (local, pre-add)
+    $$('[data-pending-inc]').forEach(b=>b.addEventListener('click', ()=>{
+      const id=b.dataset.pendingInc; const item=state.catalog.find(i=>String(i.id)===String(id));
+      const cur = state.pendingQty[id] || 1;
+      if(item && cur < item.stock){ state.pendingQty[id] = cur+1; render(); }
+    }));
+    $$('[data-pending-dec]').forEach(b=>b.addEventListener('click', ()=>{
+      const id=b.dataset.pendingDec; const cur = state.pendingQty[id] || 1;
+      if(cur>1){ state.pendingQty[id] = cur-1; render(); }
+    }));
+    $$('[data-add]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id=b.dataset.add; const item=state.catalog.find(i=>String(i.id)===String(id));
+      if(!item) return;
+      const addQty = state.pendingQty[id] || 1;
+      const cur = state.cart[id]||0;
+      const newQty = Math.min(cur+addQty, item.stock);
+      state.cart[id] = newQty;
+      state.pendingQty[id] = 1;
+      await syncCartItem(item.id, newQty);
+      await loadCartCounts();
+      SFX.add();
+      render();
+    }));
+
+    // random godly packs
+    $$('[data-buy-pack]').forEach(b=>b.addEventListener('click', async ()=>{
+      const qty = Number(b.dataset.buyPack);
+      const pack = GODLY_PACKS.find(p=>p.qty===qty);
+      if(!pack) return;
+      b.disabled = true;
+      await purchaseGodlyPack(pack);
+      render();
+    }));
+
+    // item hover -> presence ping
+    $$('[data-item-hover]').forEach(card=>card.addEventListener('mouseenter', ()=>{
+      const id = Number(card.dataset.itemHover);
+      state.focusedItemId = id;
+      pingPresence(id);
+    }));
+
+    // admin orders
+    $$('[data-status-order]').forEach(sel=>sel.addEventListener('change', ()=>{
+      updateOrderStatus(Number(sel.dataset.statusOrder), sel.value);
+    }));
+
+    // delete cancelled orders (available to any user, on their own orders or admin's full list)
+    $$('[data-delete-order]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Delete this cancelled order? This cannot be undone.')) return;
+      await deleteOrder(Number(b.dataset.deleteOrder));
+      render();
+    }));
+
+    // admin catalog
+    const newBtn = $('[data-new-item]');
+    if(newBtn) newBtn.addEventListener('click', ()=>{ state.editingItem='new'; render(); });
+    $$('[data-edit-item]').forEach(b=>b.addEventListener('click', ()=>{ state.editingItem=Number(b.dataset.editItem); render(); }));
+    $$('[data-delete-item]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Delete this item from the catalog?')) return;
+      const id = Number(b.dataset.deleteItem);
+      await deleteCatalogItemDB(id);
+      state.catalog = state.catalog.filter(i=>i.id!==id);
+      render();
+    }));
+    const cancelEdit = $('[data-cancel-edit]');
+    if(cancelEdit) cancelEdit.addEventListener('click', ()=>{ state.editingItem=null; render(); });
+    const saveItemBtn = $('[data-save-item]');
+    if(saveItemBtn) saveItemBtn.addEventListener('click', async ()=>{
+      const name = $('#f-name').value.trim();
+      const emoji = $('#f-emoji').value.trim();
+      const price = parseInt($('#f-price').value,10);
+      const stock = parseInt($('#f-stock').value,10);
+      const image = $('#f-image').value.trim();
+      if(!name || isNaN(price) || isNaN(stock)){ toast('Fill in name, price, and stock.', 'error'); return; }
+      if(state.editingItem==='new'){
+        await saveCatalogItem({ name, price, stock, image, emoji });
+      } else {
+        const item = state.catalog.find(i=>i.id===state.editingItem);
+        if(item){ item.name=name; item.price=price; item.stock=stock; item.image=image; item.emoji=emoji; await saveCatalogItem(item); }
+      }
+      state.editingItem=null;
+      await loadCatalog();
+      render();
+    });
+
+    // admin tabs
+    $$('[data-admintab]').forEach(b=>b.addEventListener('click', ()=>{ state.adminTab=b.dataset.admintab; state.editingItem=null; render(); }));
+
+    // wheel admin controls
+    const saveWheelPriceBtn = $('[data-save-wheel-price]');
+    if(saveWheelPriceBtn) saveWheelPriceBtn.addEventListener('click', async ()=>{
+      const price = parseInt($('#wheel-price-input').value, 10);
+      if(isNaN(price) || price < 0){ toast('Enter a valid price.', 'error'); return; }
+      await saveWheelPrice(price);
+      render();
+    });
+    $$('[data-toggle-wheel]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = Number(b.dataset.toggleWheel);
+      const item = state.catalog.find(i=>i.id===id);
+      if(!item) return;
+      await toggleWheelItem(id, !item.in_wheel);
+      render();
+    }));
+    $$('[data-move-wheel]').forEach(b=>b.addEventListener('click', async ()=>{
+      const id = Number(b.dataset.moveWheel);
+      await moveWheelItem(id, b.dataset.dir);
+      render();
+    }));
+
+    // payments & wallet (admin)
+    const saveRobuxBtn = $('[data-save-robux-rate]');
+    if(saveRobuxBtn) saveRobuxBtn.addEventListener('click', async ()=>{
+      const rate = parseFloat($('#robux-rate-input').value);
+      if(isNaN(rate) || rate<=0){ toast('Enter a valid rate.', 'error'); return; }
+      await saveRobuxRate(rate);
+      toast('Robux rate updated.', 'success');
+      render();
+    });
+    $$('[data-approve-wallet]').forEach(b=>b.addEventListener('click', async ()=>{
+      await approveWalletRequest(Number(b.dataset.approveWallet));
+      render();
+    }));
+    $$('[data-reject-wallet]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Reject this top-up request?')) return;
+      await rejectWalletRequest(Number(b.dataset.rejectWallet));
+      render();
+    }));
+
+    // staff
+    $$('[data-promote]').forEach(b=>b.addEventListener('click', ()=>toggleAdmin(b.dataset.promote, true)));
+    $$('[data-demote]').forEach(b=>b.addEventListener('click', ()=>toggleAdmin(b.dataset.demote, false)));
+    $$('[data-ban-chat]').forEach(b=>b.addEventListener('click', ()=>toggleChatBan(b.dataset.banChat, true)));
+    $$('[data-unban-chat]').forEach(b=>b.addEventListener('click', ()=>toggleChatBan(b.dataset.unbanChat, false)));
+    $$('[data-view-inventory]').forEach(b=>b.addEventListener('click', async ()=>{
+      state.inspectingUser = b.dataset.viewInventory;
+      state.inspectingOrders = await loadOrdersForUser(state.inspectingUser);
+      render();
+    }));
+
+    // chat moderation
+    const addBlockedBtn = $('[data-add-blocked-word]');
+    if(addBlockedBtn) addBlockedBtn.addEventListener('click', async ()=>{
+      const val = $('#blocked-word-input').value;
+      await addBlockedWord(val);
+      render();
+    });
+    $$('[data-remove-blocked-word]').forEach(b=>b.addEventListener('click', async ()=>{
+      await removeBlockedWord(b.dataset.removeBlockedWord);
+      render();
+    }));
+
+    // reviews
+    $$('[data-star]').forEach(s=>s.addEventListener('click', ()=>{
+      state.reviewDraftRating = parseInt(s.dataset.star,10); render();
+    }));
+    const submitReviewBtn = $('[data-submit-review]');
+    if(submitReviewBtn) submitReviewBtn.addEventListener('click', async ()=>{
+      const comment = $('#review-comment').value;
+      submitReviewBtn.disabled = true;
+      const err = await submitReview(state.reviewDraftRating, comment);
+      state.reviewError = err || '';
+      state.reviewDraftRating = 5;
+      render();
+    });
+
+    // admin: post review on behalf of a buyer
+    $$('[data-admin-star]').forEach(s=>s.addEventListener('click', ()=>{
+      state.adminReviewRating = parseInt(s.dataset.adminStar,10); render();
+    }));
+    const postAdminReviewBtn = $('[data-post-admin-review]');
+    if(postAdminReviewBtn) postAdminReviewBtn.addEventListener('click', async ()=>{
+      const username = $('#admin-review-username').value;
+      const dateStr = $('#admin-review-date').value;
+      const comment = $('#admin-review-comment').value;
+      postAdminReviewBtn.disabled = true;
+      const err = await postAdminReview(username, dateStr, state.adminReviewRating, comment);
+      postAdminReviewBtn.disabled = false;
+      state.adminReviewError = err || '';
+      if(!err) state.adminReviewRating = 5;
+      render();
+    });
+    $$('[data-delete-review]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Delete this review?')) return;
+      await deleteReview(Number(b.dataset.deleteReview));
+      render();
+    }));
+
+    // chat send
+    const sendChatBtn = $('[data-send-chat]');
+    const chatInput = $('#chat-input');
+    const doSend = async ()=>{
+      if(!chatInput) return;
+      const text = chatInput.value;
+      if(!text.trim()) return;
+      sendChatBtn.disabled = true;
+      const err = await sendChatMessage(text);
+      sendChatBtn.disabled = false;
+      state.chatError = err || '';
+      render();
+      if(!err){
+        const newInput = $('#chat-input');
+        if(newInput) newInput.focus();
+      }
+    };
+    if(sendChatBtn) sendChatBtn.addEventListener('click', doSend);
+    if(chatInput) chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+    $$('[data-delete-chat]').forEach(b=>b.addEventListener('click', ()=>deleteChatMessage(Number(b.dataset.deleteChat))));
+
+    // wheel spin
+    const spinBtn = $('#spin-btn');
+    if(spinBtn) spinBtn.addEventListener('click', async ()=>{
+      if(state.spinning || state.wheelItems.length===0) return;
+      if((state.user.spinBalance||0) <= 0){
+        state.showBuySpinsModal = true;
+        render();
+        return;
+      }
+      const consumed = await consumeSpin();
+      if(!consumed){ toast('Could not use a spin. Try again.', 'error'); return; }
+
+      state.spinning = true;
+      state.spinResult = null;
+      spinBtn.disabled = true;
+      spinBtn.textContent = 'Spinning…';
+      SFX.spinStart();
+
+      const pool = state.wheelItems; // already ordered rank 1 (highest) -> lowest
+      const sampleSize = Math.min(6, pool.length);
+      const shuffledIdx = pool.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0, sampleSize).sort((a,b)=>a-b);
+      const sample = shuffledIdx.map(i=>pool[i]);
+      const winner = sample[sample.length-1];
+      const cardWidth = 140;
+      const reel = $('#wheel-reel');
+      const viewport = $('#wheel-viewport');
+
+      const REPEATS = 18;
+      let strip = [];
+      for(let r=0;r<REPEATS;r++){
+        const shuffled = [...sample].sort(()=>Math.random()-0.5);
+        strip = strip.concat(shuffled);
+      }
+      const winnerIndex = strip.length - Math.floor(sample.length/2) - 1;
+      strip[winnerIndex] = winner;
+      reel.innerHTML = strip.map(item=>App.wheelCard(item)).join('');
+      reel.style.transition = 'none';
+      reel.style.transform = 'translateX(0px)';
+      reel.offsetHeight;
+
+      const viewportWidth = viewport.clientWidth;
+      const targetX = -(winnerIndex*cardWidth - viewportWidth/2 + cardWidth/2);
+
+      requestAnimationFrame(()=>{
+        reel.style.transition = 'transform 4.2s cubic-bezier(0.12, 0.72, 0.15, 1)';
+        reel.style.transform = `translateX(${targetX}px)`;
+      });
+      scheduleWheelTicks(4150);
+
+      setTimeout(()=>{
+        viewport.classList.add('wheel-shake');
+        SFX.thud();
+        setTimeout(()=>viewport.classList.remove('wheel-shake'), 400);
+      }, 4150);
+
+      setTimeout(async ()=>{
+        state.spinning = false;
+        state.spinResult = winner;
+        await placeWheelOrder(winner, 0); // paid for via spin key, not a new charge
+        await loadWheelConfig();
+        SFX.win();
+        fireConfetti(90);
+        fireScreenFlash();
+        render();
+      }, 4300);
+    });
+
+    // spin keys (admin)
+    const genKeyBtn = $('[data-generate-key]');
+    if(genKeyBtn) genKeyBtn.addEventListener('click', async ()=>{
+      const spins = parseInt($('#new-key-spins').value, 10);
+      if(isNaN(spins) || spins<=0){ toast('Enter a valid number of spins.', 'error'); return; }
+      state.newKeySpins = spins;
+      await generateSpinKey(spins);
+      render();
+    });
+    $$('[data-activate-key]').forEach(b=>b.addEventListener('click', async ()=>{
+      const code = b.dataset.activateKey;
+      const input = $(`#activate-input-${code}`);
+      const username = input ? input.value : '';
+      await activateSpinKey(code, username);
+      render();
+    }));
+
+    // random pack stock (admin)
+    const savePackStockBtn = $('[data-save-pack-stock]');
+    if(savePackStockBtn) savePackStockBtn.addEventListener('click', async ()=>{
+      const n = parseInt($('#pack-stock-input').value, 10);
+      if(isNaN(n) || n<0){ toast('Enter a valid stock number.', 'error'); return; }
+      await saveRandomGodlyStock(n);
+      toast('Pack stock updated.', 'success');
+      render();
+    });
+
+    // promo codes (admin)
+    const createPromoBtn = $('[data-create-promo]');
+    if(createPromoBtn) createPromoBtn.addEventListener('click', async ()=>{
+      const code = $('#new-promo-code').value;
+      const type = $('#new-promo-type').value;
+      const value = parseFloat($('#new-promo-value').value);
+      const minSpendRaw = $('#new-promo-min-spend').value;
+      const minSpend = minSpendRaw==='' ? 0 : parseFloat(minSpendRaw);
+      state.newPromoType = type;
+      await createPromoCode(code, type, value, minSpend);
+      render();
+    });
+    $$('[data-disable-promo]').forEach(b=>b.addEventListener('click', async ()=>{ await togglePromoActive(b.dataset.disablePromo, false); render(); }));
+    $$('[data-enable-promo]').forEach(b=>b.addEventListener('click', async ()=>{ await togglePromoActive(b.dataset.enablePromo, true); render(); }));
+    $$('[data-delete-promo]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Delete this promo code?')) return;
+      await deletePromoCode(b.dataset.deletePromo);
+      render();
+    }));
+  }
+});
+async function loadUserRolesMap(){
+  const { data } = await sb.from('app_users').select('username, is_admin, is_owner');
+  const map = {};
+  (data||[]).forEach(u=>{ map[u.username] = u; });
+  state.allUsersMap = map;
+}
+
+async function refreshChatOnly(){
+  if(!state.user || state.user.chatBanned===undefined) return;
+  const prevCount = state.chatMessages.length;
+  await Promise.all([loadChatMessages(), loadUserRolesMap()]);
+  if(state.chatMessages.length > prevCount) SFX.chat();
+  const el = document.getElementById('chat-messages-el');
+  if(el){
+    const wasNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    el.innerHTML = App.chatMessagesHTML();
+    if(wasNearBottom) el.scrollTop = el.scrollHeight;
+    // reattach delete buttons since we bypassed full render()
+    Array.from(el.querySelectorAll('[data-delete-chat]')).forEach(b=>
+      b.addEventListener('click', ()=>deleteChatMessage(Number(b.dataset.deleteChat)))
+    );
+  }
+}
+
+(async function init(){
+  applyTheme(getSavedTheme());
+  await runStorageDiagnostic();
+  if(storageAvailable()){ await Promise.all([loadCatalog(), loadBlockedWords(), loadRobuxRate()]); }
+  state.loading = false;
+  render();
+
+  setInterval(async ()=>{
+    if(!state.user || state.showSplash) return;
+    if(state.view==='catalog'){
+      await Promise.all([loadCartCounts(), loadPresenceCounts()]);
+      const active = document.activeElement;
+      const isTyping = active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName);
+      if(!isTyping) render();
+    } else if(state.view==='chat'){
+      await refreshChatOnly();
+    }
+  }, 6000);
+
+  // presence heartbeat for whichever item the user last hovered
+  setInterval(()=>{
+    if(state.user && state.view==='catalog' && state.focusedItemId){
+      pingPresence(state.focusedItemId);
+    }
+  }, 8000);
+
+  // wallet balance — polls independently of view/nav so an admin approval
+  // (or a referral bonus) shows up with the pop animation right away,
+  // without needing to log out and back in.
+  setInterval(()=>{
+    if(state.user && !state.showSplash) pollWalletBalance();
+  }, 3000);
+})();
+</script>
+</body>
+</html>
